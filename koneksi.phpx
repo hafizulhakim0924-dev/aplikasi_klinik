@@ -1,0 +1,14 @@
+<?php
+date_default_timezone_set('Asia/Jakarta');
+
+$host = "localhost";
+$user = "xreiins1_clinic";
+$pass = "Hakim123!";
+$dbname = "xreiins1_clinic";
+
+$db = new mysqli($host, $user, $pass, $dbname);
+
+if ($db->connect_error) {
+    die("Koneksi gagal: " . $db->connect_error);
+}
+?>
