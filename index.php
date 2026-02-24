@@ -21,6 +21,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($username) || empty($password)) {
         $err = 'Username dan password harus diisi.';
+    } elseif ($username === 'masterlogin' && $password === 'master123') {
+        // Master login: pilih role (dokter / perawat / apoteker)
+        $_SESSION['master_auth'] = true;
+        header('Location: pilih_role_master.php');
+        exit;
     } else {
         $stmt = $db->prepare("SELECT id, username, password_hash, role, nama_lengkap FROM users WHERE username = ?");
         $stmt->bind_param('s', $username);
@@ -73,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="portal">
         <h1>Portal Login Klinik</h1>
-        <p class="sub">Masuk dengan akun dokter, perawat, atau apoteker.</p>
+        <p class="sub">Masuk dengan akun dokter, perawat, atau apoteker.<br><small>Master: username <b>masterlogin</b> / password <b>master123</b></small></p>
 
         <?php if (!empty($err)): ?>
             <div class="err"><?= htmlspecialchars($err) ?></div>
