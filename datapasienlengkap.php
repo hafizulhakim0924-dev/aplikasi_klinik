@@ -148,7 +148,7 @@ $q = mysqli_query($conn, $sql) or die("<b>SQL ERROR:</b> " . mysqli_error($conn)
 
     <td>
         <?php if($r['status_akhir']=="dokter_selesai"): ?>
-            <a href="generate_surat.php?pasien_id=<?= $r['pasien_id'] ?>" target="_blank">Surat</a>
+            <a href="generate_surat_dokter.php?pasien_id=<?= $r['pasien_id'] ?>" target="_blank">Surat (Dokter)</a>
         <?php else: ?>-<?php endif; ?>
     </td>
 

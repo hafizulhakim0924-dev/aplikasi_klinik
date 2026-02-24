@@ -236,6 +236,49 @@ if(isset($_GET['hapus_kat'])){
     exit;
 }
 
+// ========================== DAFTAR ANTRIAN DARI KLINIK (pasien tanpa HP) =========================
+if(isset($_POST['daftar_antrian'])){
+    $anak_id = (int)$_POST['anak_id'];
+    $keluhan = trim($_POST['keluhan'] ?? '');
+
+    $q = $db->prepare("SELECT nama FROM anak WHERE id_anak = ?");
+    $q->bind_param('i', $anak_id);
+    $q->execute();
+    $result = $q->get_result();
+    $row = $result->fetch_assoc();
+    $nama = $row['nama'] ?? '---';
+    $q->close();
+
+    $res = $db->query("SELECT COALESCE(MAX(nomor_antrian), 0) AS last FROM pasien");
+    $last = (int)$res->fetch_assoc()['last'] + 1;
+    $waktu_daftar = date('Y-m-d H:i:s');
+
+    $ins = $db->prepare("
+        INSERT INTO pasien 
+        (anak_id, nama, nomor_antrian, status, tgl_daftar)
+        VALUES (?, ?, ?, 'menunggu', ?)
+    ");
+    $ins->bind_param('isis', $anak_id, $nama, $last, $waktu_daftar);
+    $ins->execute();
+    $pasien_id = $db->insert_id;
+    $ins->close();
+
+    $stmt_r = $db->prepare("
+        INSERT INTO riwayat_kesehatan 
+        (pasien_id, anak_id, keluhan, nomor_antrian, status_akhir, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 'user_saja', NOW(), NOW())
+    ");
+    $stmt_r->bind_param('iisi', $pasien_id, $anak_id, $keluhan, $last);
+    $stmt_r->execute();
+    $stmt_r->close();
+
+    header("Location: perawat.php?ok_daftar=1&antrian=".$last);
+    exit;
+}
+
+// ========================== LIST ANAK (untuk form daftar antrian) =========================
+$anak_list = $db->query("SELECT id_anak, nama FROM anak ORDER BY nama ASC");
+
 // ========================== LIST PASIEN ===========================
 $list = $db->query("
     SELECT p.*, a.nama AS nama_anak
@@ -331,6 +374,10 @@ if(isset($_POST['simpan'])){
 
     $db->query("UPDATE pasien SET status='proses_dokter' WHERE id=$pasien_id");
 
+    if (!empty($_POST['buat_surat'])) {
+        header("Location: generate_surat_perawat.php?pasien_id=".$pasien_id."&print=1");
+        exit;
+    }
     header("Location: perawat.php?ok=1");
     exit;
 }
@@ -388,6 +435,14 @@ button:hover, .btn:hover { background: #45a049; }
 .btn-danger { background: #f44336; }
 .btn-danger:hover { background: #da190b; }
 .btn-logout { background: #ff9800; padding: 8px 15px; font-size: 14px; }
+.pilihan-alur { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 14px; margin-top: 12px; }
+.label-alur { margin: 0 0 4px 0; font-size: 14px; }
+.desc-alur { margin: 0 0 12px 0; font-size: 12px; color: #495057; }
+.wrap-btn-alur { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn-ke-dokter { background: #4CAF50; }
+.btn-ke-dokter:hover { background: #45a049; }
+.btn-ke-apoteker { background: #2196F3; }
+.btn-ke-apoteker:hover { background: #1976D2; }
 .btn-logout:hover { background: #e68900; }
 .alert { padding: 10px; margin: 10px 0; border-radius: 5px; }
 .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
@@ -397,6 +452,7 @@ button:hover, .btn:hover { background: #45a049; }
 .right-col { width: 70%; }
 .box { background: white; padding: 15px; margin-bottom: 15px; border: 1px solid #ddd; }
 .box h3 { margin-top: 0; color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 5px; }
+.small-muted { color: #666; font-size: 12px; margin: 0 0 10px 0; }
 .user-info { background: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
 #fieldSuhu { display: none; background: #fff3cd; padding: 10px; margin: 10px 0; border-left: 4px solid #ffc107; }
 
@@ -463,9 +519,31 @@ button:hover, .btn:hover { background: #45a049; }
 <div class="alert alert-info">✓ Resep berhasil dikirim ke apotek</div>
 <?php endif; ?>
 
+<?php if(isset($_GET['ok_daftar'])): ?>
+<div class="alert alert-success">✓ Pasien berhasil didaftarkan. No. Antrian: <strong><?= (int)($_GET['antrian'] ?? '') ?></strong></div>
+<?php endif; ?>
+
 <div class="two-col">
     <!-- KOLOM KIRI -->
     <div class="left-col">
+        <!-- Input Antrian dari Klinik (pasien tanpa HP) -->
+        <div class="box box-daftar">
+            <h3>📝 Input Antrian dari Klinik</h3>
+            <p class="small-muted">Untuk pasien yang tidak daftar lewat HP (perawat bantu daftarkan)</p>
+            <form method="post">
+                <label><b>Pilih Nama Anak:</b></label>
+                <select name="anak_id" required style="width:100%; padding:8px; margin:5px 0; box-sizing:border-box;">
+                    <option value="">-- pilih anak --</option>
+                    <?php while($a = $anak_list->fetch_assoc()): ?>
+                        <option value="<?= (int)$a['id_anak'] ?>"><?= h($a['nama']) ?></option>
+                    <?php endwhile; ?>
+                </select>
+                <label><b>Keluhan:</b></label>
+                <textarea name="keluhan" placeholder="Keluhan pasien (boleh kosong)" rows="2" style="width:100%; padding:8px; margin:5px 0; box-sizing:border-box;"></textarea>
+                <button type="submit" name="daftar_antrian" class="btn" style="margin-top:8px;">Daftarkan & Ambil Antrian</button>
+            </form>
+        </div>
+
         <!-- Antrian Pasien -->
         <div class="box">
             <h3>📋 Antrian Pasien</h3>
@@ -577,7 +655,7 @@ button:hover, .btn:hover { background: #45a049; }
                     <textarea name="resep_perawat" placeholder="Obat dan dosis..."></textarea>
 
                     <label>
-                        <input type="checkbox" id="buat_surat"> Buat Surat Izin Sakit
+                        <input type="checkbox" name="buat_surat" id="buat_surat" value="1"> Buat Surat Izin Sakit
                     </label>
 
                     <!-- Nama Perawat (Otomatis Terisi & Readonly) -->
@@ -585,9 +663,22 @@ button:hover, .btn:hover { background: #45a049; }
                     <input type="text" value="<?= h($_SESSION['perawat_nama']) ?>" readonly style="background: #e9ecef; cursor: not-allowed;">
 
                     <br><br>
-                    <button type="submit" name="simpan">✓ Simpan & Kirim ke Dokter</button>
-                    <button type="submit" name="dokter_tidak_ada" class="btn-danger">Dokter Tidak Ada - Kirim ke Apotek</button>
+                    <div class="pilihan-alur">
+                        <p class="label-alur"><b>Pilih alur pasien:</b></p>
+                        <p class="desc-alur">Jika dokter ada, pilih <strong>Lanjutkan ke Dokter</strong>. Jika dokter tidak ada, pilih <strong>Langsung ke Apoteker</strong>.</p>
+                        <div class="wrap-btn-alur">
+                            <button type="submit" name="simpan" class="btn btn-ke-dokter">✓ Lanjutkan ke Dokter</button>
+                            <button type="submit" name="dokter_tidak_ada" class="btn btn-ke-apoteker">Langsung ke Apoteker (dokter tidak ada)</button>
+                        </div>
+                    </div>
                 </form>
+
+                <p style="margin-top:12px;">
+                    <a href="generate_surat_perawat.php?pasien_id=<?= (int)$selected['id'] ?>" target="_blank" class="btn" style="background:#0d9488;">
+                        📄 Generate Surat Izin (PDF) – Perawat
+                    </a>
+                    <small style="color:#666;"> Buka surat lalu cetak / simpan sebagai PDF.</small>
+                </p>
 
                 <hr style="margin:20px 0;">
 

@@ -168,7 +168,7 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['simpan_dokter'])){
     $db->query("UPDATE pasien SET status='proses_obat' WHERE id=$pasien_id");
 
     if($buat_surat){
-        header("Location: generate_surat.php?pasien_id=".$pasien_id);
+        header("Location: generate_surat_dokter.php?pasien_id=".$pasien_id);
         exit;
     }
 
@@ -406,9 +406,9 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['simpan_dokter'])){
         <?php if(!empty($r['nama_dokter'])): ?>
             <b>Dokter:</b> <?= htmlspecialchars($r['nama_dokter']) ?><br>
             <?php if($r['status_akhir']=='dokter_selesai'): ?>
-                <a href="generate_surat.php?pasien_id=<?= $r['pasien_id'] ?>" 
+                <a href="generate_surat_dokter.php?pasien_id=<?= $r['pasien_id'] ?>"
                    target="_blank" style="color:blue;font-weight:bold;">
-                   Lihat Surat Izin Sakit
+                   Lihat / Generate Surat Izin Sakit (PDF)
                 </a><br>
             <?php endif; ?>
         <?php endif; ?>
