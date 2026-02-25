@@ -74,12 +74,49 @@ if(isset($_POST['selesai_obat'])){
     header("Location: apoteker.php?done=1");
     exit;
 }
+
+/* ================================
+   DATA UNTUK TAB STOCK & RANKING
+   ================================ */
+$obat_list = $db->query("SELECT * FROM obat ORDER BY nama_obat ASC");
+
+$ranking = $db->query("
+    SELECT a.id_anak, a.nama AS nama_anak,
+           SUM(t.jumlah) AS total_jumlah,
+           COUNT(DISTINCT t.pasien_id) AS frekuensi
+    FROM transaksi_obat t
+    JOIN pasien p ON p.id = t.pasien_id
+    JOIN anak a ON a.id_anak = p.anak_id
+    WHERE t.jenis = 'keluar'
+    GROUP BY a.id_anak, a.nama
+    ORDER BY total_jumlah DESC
+    LIMIT 50
+");
+$max_total = 0;
+$rank_rows = [];
+while ($r = $ranking->fetch_assoc()) {
+    $rank_rows[] = $r;
+    if ($r['total_jumlah'] > $max_total) $max_total = (int)$r['total_jumlah'];
+}
 ?>
 
 <link rel="stylesheet" href="style.css">
+<style>
+.apotek-tab { padding: 5px 12px; margin-right: 4px; cursor: pointer; font-size: 12px; border: 1px solid var(--c-border); background: #fff; border-radius: 4px; }
+.apotek-tab.active { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+.apotek-tabContent { display: none; margin-top: 10px; }
+.apotek-tabContent.active { display: block; }
+.rank-bar { height: 20px; background: var(--c-primary); border-radius: 4px; min-width: 2%; }
+.rank-bar-wrap { background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+</style>
 <h1 class="page-title">Panel Apoteker</h1>
 <?php if(isset($_GET['done'])): ?><div class="alert alert-success">✔ Obat berhasil diserahkan & stok diperbarui.</div><?php endif; ?>
 
+<button type="button" class="apotek-tab active" data-tab="tabPasien">Daftar Pasien</button>
+<button type="button" class="apotek-tab" data-tab="tabStock">Stock Obat</button>
+<button type="button" class="apotek-tab" data-tab="tabRanking">Ranking Penggunaan Obat</button>
+
+<div id="tabPasien" class="apotek-tabContent active">
 <div class="two-col">
 <div class="left panel">
     <h3>Daftar Pasien</h3>
@@ -208,5 +245,87 @@ while($o = $ob->fetch_assoc()):
 
 </div>
 </div>
+</div>
+
+<!-- ================= TAB STOCK OBAT ================= -->
+<div id="tabStock" class="apotek-tabContent">
+    <div class="panel">
+        <h3>Stock Obat</h3>
+        <table style="width:100%;">
+            <tr>
+                <th>No</th>
+                <th>Nama Obat</th>
+                <th>Stok</th>
+                <th>Satuan</th>
+            </tr>
+            <?php
+            $obat_list->data_seek(0);
+            $no = 1;
+            while ($o = $obat_list->fetch_assoc()):
+                $stok = (int)$o['stok'];
+                $row_class = $stok <= 0 ? ' style="background:#fee2e2;"' : ($stok <= 5 ? ' style="background:#fef3c7;"' : '');
+            ?>
+            <tr<?= $row_class ?>>
+                <td><?= $no++ ?></td>
+                <td><?= h($o['nama_obat']) ?></td>
+                <td><strong><?= $stok ?></strong></td>
+                <td><?= h($o['satuan'] ?? '-') ?></td>
+            </tr>
+            <?php endwhile; ?>
+        </table>
+        <?php if ($obat_list->num_rows == 0): ?>
+            <p class="muted">Belum ada data obat.</p>
+        <?php endif; ?>
+    </div>
+</div>
+
+<!-- ================= TAB RANKING PENGGUNAAN OBAT ================= -->
+<div id="tabRanking" class="apotek-tabContent">
+    <div class="panel">
+        <h3>Ranking Penggunaan Obat (per Pasien/Anak)</h3>
+        <p class="muted">Berdasarkan total jumlah item obat yang keluar. Siapa yang paling sering menggunakan obat.</p>
+        <?php if (empty($rank_rows)): ?>
+            <p class="muted">Belum ada data transaksi keluar.</p>
+        <?php else: ?>
+        <table style="width:100%; margin-top:10px;">
+            <tr>
+                <th style="width:50px;">Rank</th>
+                <th>Nama Pasien / Anak</th>
+                <th style="width:100px;">Total Jumlah</th>
+                <th style="width:90px;">Frekuensi</th>
+                <th style="width:200px;">Grafik</th>
+            </tr>
+            <?php foreach ($rank_rows as $i => $row):
+                $pct = $max_total > 0 ? round(($row['total_jumlah'] / $max_total) * 100) : 0;
+            ?>
+            <tr>
+                <td><strong>#<?= $i + 1 ?></strong></td>
+                <td><?= h($row['nama_anak']) ?></td>
+                <td><?= number_format($row['total_jumlah']) ?></td>
+                <td><?= $row['frekuensi'] ?>x kunjungan</td>
+                <td>
+                    <div class="rank-bar-wrap" style="height:22px;">
+                        <div class="rank-bar" style="width:<?= $pct ?>%;"></div>
+                    </div>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </table>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.apotek-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var tabId = this.getAttribute('data-tab');
+        document.querySelectorAll('.apotek-tab').forEach(function(b) { b.classList.remove('active'); });
+        document.querySelectorAll('.apotek-tabContent').forEach(function(c) { c.classList.remove('active'); });
+        this.classList.add('active');
+        var el = document.getElementById(tabId);
+        if (el) el.classList.add('active');
+    });
+});
+</script>
 
 <?php include 'footer_user.php'; ?>
