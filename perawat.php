@@ -487,9 +487,10 @@ button, .btn { padding: 6px 12px; font-size: 12px; }
 .perawat-suggest-item { padding: 8px 10px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
 .perawat-suggest-item:hover { background: #f0fdfa; }
 .perawat-suggest-item:last-child { border-bottom: none; }
-.kategori-checkbox-container { border: 1px solid var(--c-border); padding: 8px; background: #fafafa; border-radius: 4px; display: flex; flex-direction: column; flex-wrap: wrap; max-height: 90px; gap: 2px 14px; align-content: flex-start; }
-.kategori-checkbox-item { padding: 2px 0; white-space: nowrap; }
+.kategori-checkbox-container { border: 1px solid var(--c-border); padding: 8px; background: #fafafa; border-radius: 4px; display: flex; flex-direction: column; flex-wrap: wrap; gap: 8px 14px; align-content: flex-start; }
+.kategori-checkbox-item { padding: 4px 0; min-width: 140px; }
 .kategori-checkbox-item input { width: auto; margin-right: 6px; }
+.wrap-ket-kat { min-height: 0; }
 .selected-categories { padding: 6px; margin: 4px 0; border-radius: 4px; min-height: 18px; font-size: 11px; background: #f0fdfa; }
 .selected-categories .badge { display: inline-block; background: var(--c-primary); color: #fff; padding: 2px 6px; margin: 1px; border-radius: 10px; font-size: 11px; }
 textarea { min-height: 50px; }
@@ -905,40 +906,39 @@ document.querySelectorAll('.perawat-tab').forEach(function(btn){
 // ===================================================
 // MULTIPLE KATEGORI CHECKBOX HANDLER
 // ===================================================
-const checkboxes = document.querySelectorAll('.kategori-checkbox');
-const displayArea = document.getElementById('selectedCategoriesDisplay');
-const fieldSuhu = document.getElementById('fieldSuhu');
+(function(){
+    var displayArea = document.getElementById('selectedCategoriesDisplay');
+    var fieldSuhu = document.getElementById('fieldSuhu');
+    var container = document.querySelector('.kategori-checkbox-container');
+    if(!container) return;
 
-function updateSelectedDisplay() {
-    const selected = Array.from(checkboxes)
-        .filter(cb => cb.checked)
-        .map(cb => cb.value);
-    
-    if(selected.length === 0) {
-        displayArea.innerHTML = '<small style="color:#666;">Belum ada kategori dipilih</small>';
-        if(fieldSuhu) fieldSuhu.style.display = 'none';
-    } else {
-        displayArea.innerHTML = selected
-            .map(cat => `<span class="badge">${cat}</span>`)
-            .join('');
-        if(selected.includes('Demam')) {
-            if(fieldSuhu) fieldSuhu.style.display = 'block';
-        } else {
-            if(fieldSuhu) fieldSuhu.style.display = 'none';
+    function updateSelectedDisplay() {
+        var checkboxes = container.querySelectorAll('.kategori-checkbox');
+        var selected = Array.from(checkboxes).filter(function(cb){ return cb.checked; }).map(function(cb){ return cb.value; });
+
+        if(displayArea) {
+            if(selected.length === 0) {
+                displayArea.innerHTML = '<small style="color:#666;">Belum ada kategori dipilih</small>';
+            } else {
+                displayArea.innerHTML = selected.map(function(cat){ return '<span class="badge">' + cat + '</span>'; }).join('');
+            }
         }
+        if(fieldSuhu) {
+            fieldSuhu.style.display = selected.indexOf('Demam') >= 0 ? 'block' : 'none';
+        }
+        checkboxes.forEach(function(cb){
+            var item = cb.closest('.kategori-checkbox-item');
+            if(!item) return;
+            var wrap = item.querySelector('.wrap-ket-kat');
+            if(wrap) wrap.style.display = cb.checked ? 'block' : 'none';
+        });
     }
-    checkboxes.forEach(function(cb){
-        var wrapId = cb.getAttribute('data-wrap-id');
-        if(!wrapId) return;
-        var wrap = document.getElementById(wrapId);
-        if(wrap) wrap.style.display = cb.checked ? 'block' : 'none';
-    });
-}
 
-// Attach event listener ke semua checkbox
-checkboxes.forEach(cb => {
-    cb.addEventListener('change', updateSelectedDisplay);
-});
+    container.addEventListener('change', function(e){
+        if(e.target && e.target.classList.contains('kategori-checkbox')) updateSelectedDisplay();
+    });
+    updateSelectedDisplay();
+})();
 
 // ===================================================
 // AJAX POLLING - OPTIMIZED (3 detik interval)
