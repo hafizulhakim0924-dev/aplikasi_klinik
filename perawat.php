@@ -147,6 +147,26 @@ if(isset($_GET['ajax'])){
         }
         exit;
     }
+
+    // ------- AJAX: SUGGEST ANAK (dropdown rekam medik & grafik) ------
+    if($_GET['ajax'] == "suggest_anak"){
+        $q = trim($_GET['q'] ?? '');
+        header('Content-Type: text/html; charset=utf-8');
+        if(strlen($q) < 2){
+            echo '';
+            exit;
+        }
+        $stmt = $db->prepare("SELECT id_anak, nama FROM anak WHERE nama LIKE ? ORDER BY nama ASC LIMIT 15");
+        $like = '%'.$q.'%';
+        $stmt->bind_param('s', $like);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        while($row = $res->fetch_assoc()){
+            echo '<div class="perawat-suggest-item" data-id="'.(int)$row['id_anak'].'" data-nama="'.h($row['nama']).'">'.h($row['nama']).'</div>';
+        }
+        $stmt->close();
+        exit;
+    }
 }
 
 // ========================== KATEGORI JSON =========================
@@ -276,38 +296,37 @@ if(isset($_GET['proses'])){
     }
 }
 
-// ========================= DATA TAB CEK REKAM MEDIK & GRAFIK =========================
+// ========================= DATA TAB REKAM MEDIK & GRAFIK (gabungan) =========================
 $anak_list_tab = $db->query("SELECT id_anak, nama FROM anak ORDER BY nama ASC");
 
+$rekam_anak_id = (int)($_GET['anak_id'] ?? 0);
 $rekam_q = trim($_GET['rekam_q'] ?? '');
-$rekam_anak = null;
-$rekam_riwayat = null;
-if ($rekam_q !== '') {
+if ($rekam_anak_id > 0) {
+    $rekam_anak = $db->query("SELECT * FROM anak WHERE id_anak=$rekam_anak_id LIMIT 1")->fetch_assoc();
+} elseif ($rekam_q !== '') {
     $stmt_r = $db->prepare("SELECT * FROM anak WHERE nama LIKE ? OR id_anak = ? LIMIT 1");
     $kr = "%$rekam_q%";
     $stmt_r->bind_param("si", $kr, $rekam_q);
     $stmt_r->execute();
     $rekam_anak = $stmt_r->get_result()->fetch_assoc();
     $stmt_r->close();
-    if ($rekam_anak) {
-        $rekam_riwayat = $db->query("SELECT * FROM riwayat_kesehatan WHERE anak_id=".(int)$rekam_anak['id_anak']." ORDER BY created_at DESC");
-    }
+    if ($rekam_anak) $rekam_anak_id = (int)$rekam_anak['id_anak'];
+} else {
+    $rekam_anak = null;
 }
 
-$grafik_anak_id = (int)($_GET['grafik_anak_id'] ?? 0);
-$grafik_anak = null;
+$rekam_riwayat = null;
 $grafik_kategori = [];
-if ($grafik_anak_id > 0) {
-    $grafik_anak = $db->query("SELECT * FROM anak WHERE id_anak=$grafik_anak_id LIMIT 1")->fetch_assoc();
-    if ($grafik_anak) {
-        $res_kat = $db->query("
-            SELECT kategori, COUNT(*) AS jumlah FROM riwayat_kesehatan
-            WHERE anak_id=$grafik_anak_id AND kategori IS NOT NULL AND kategori != ''
-            GROUP BY kategori ORDER BY jumlah DESC
-        ");
-        while ($row = $res_kat->fetch_assoc()) {
-            $grafik_kategori[] = $row;
-        }
+if ($rekam_anak) {
+    $aid = (int)$rekam_anak['id_anak'];
+    $rekam_riwayat = $db->query("SELECT * FROM riwayat_kesehatan WHERE anak_id=$aid ORDER BY created_at DESC");
+    $res_kat = $db->query("
+        SELECT kategori, COUNT(*) AS jumlah FROM riwayat_kesehatan
+        WHERE anak_id=$aid AND kategori IS NOT NULL AND kategori != ''
+        GROUP BY kategori ORDER BY jumlah DESC
+    ");
+    while ($row = $res_kat->fetch_assoc()) {
+        $grafik_kategori[] = $row;
     }
 }
 
@@ -431,6 +450,10 @@ button, .btn { padding: 6px 12px; font-size: 12px; }
 .grafik-bar-wrap { background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
 .record-box { border: 1px solid var(--c-border); padding: 8px 10px; margin-bottom: 6px; border-radius: 4px; background: #f8fafc; cursor: pointer; }
 .record-detail { display: none; background: #fff; border: 1px solid var(--c-border); padding: 10px; border-radius: 4px; margin-top: 6px; font-size: 12px; }
+.perawat-suggest-dropdown { position: absolute; left: 0; top: 100%; width: 100%; max-width: 280px; max-height: 220px; overflow-y: auto; background: #fff; border: 1px solid var(--c-border); border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100; margin-top: 2px; }
+.perawat-suggest-item { padding: 8px 10px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+.perawat-suggest-item:hover { background: #f0fdfa; }
+.perawat-suggest-item:last-child { border-bottom: none; }
 .kategori-checkbox-container { border: 1px solid var(--c-border); padding: 8px; max-height: 140px; overflow-y: auto; background: #fafafa; border-radius: 4px; }
 .kategori-checkbox-item { padding: 3px 0; }
 .kategori-checkbox-item input { width: auto; margin-right: 6px; }
@@ -465,11 +488,13 @@ textarea { min-height: 50px; }
 <div class="alert alert-success">✓ Pasien berhasil didaftarkan. No. Antrian: <strong><?= (int)($_GET['antrian'] ?? '') ?></strong></div>
 <?php endif; ?>
 
-<button type="button" class="perawat-tab active" data-tab="tabPemeriksaan">Antrian & Pemeriksaan</button>
-<button type="button" class="perawat-tab" data-tab="tabRekamMedik">Cek Rekam Medik</button>
-<button type="button" class="perawat-tab" data-tab="tabGrafik">Grafik Anak</button>
+<?php
+$tab_rekam_active = (isset($_GET['tab']) && $_GET['tab'] === 'rekam');
+?>
+<button type="button" class="perawat-tab <?= $tab_rekam_active ? '' : 'active' ?>" data-tab="tabPemeriksaan">Antrian & Pemeriksaan</button>
+<button type="button" class="perawat-tab <?= $tab_rekam_active ? 'active' : '' ?>" data-tab="tabRekamMedik">Rekam Medik & Grafik</button>
 
-<div id="tabPemeriksaan" class="perawat-tabContent active">
+<div id="tabPemeriksaan" class="perawat-tabContent <?= $tab_rekam_active ? '' : 'active' ?>">
 <div class="two-col">
     <!-- KOLOM KIRI -->
     <div class="left-col">
@@ -660,21 +685,25 @@ textarea { min-height: 50px; }
 </div>
 </div><!-- #tabPemeriksaan -->
 
-<!-- ================= TAB CEK REKAM MEDIK ================= -->
-<div id="tabRekamMedik" class="perawat-tabContent">
+<!-- ================= TAB REKAM MEDIK & GRAFIK (gabungan) ================= -->
+<div id="tabRekamMedik" class="perawat-tabContent <?= $tab_rekam_active ? 'active' : '' ?>">
     <div class="box">
-        <h3>🔎 Cek Rekam Medik</h3>
-        <form method="get" style="margin-bottom:12px;">
+        <h3>🔎 Rekam Medik & Grafik</h3>
+        <form method="get" id="formRekamGrafik" style="margin-bottom:12px;">
+            <input type="hidden" name="tab" value="rekam">
+            <input type="hidden" name="anak_id" id="rekam_anak_id" value="<?= $rekam_anak_id ?>">
             <?php if (!empty($selected['id'])): ?><input type="hidden" name="proses" value="<?= (int)$selected['id'] ?>"><?php endif; ?>
-            <input type="text" name="rekam_q" placeholder="Cari nama anak atau ID..." value="<?= h($rekam_q) ?>" style="padding:6px 10px; width:260px;">
-            <button type="submit" class="btn">Cari</button>
+            <div class="perawat-search-wrap" style="position:relative; display:inline-block;">
+                <input type="text" id="rekam_search_input" placeholder="Cari nama anak..." value="<?= $rekam_anak ? h($rekam_anak['nama']) : '' ?>" autocomplete="off" style="padding:6px 10px; width:280px;">
+                <div id="rekam_suggest_dropdown" class="perawat-suggest-dropdown" style="display:none;"></div>
+            </div>
         </form>
-        <?php if ($rekam_q === ''): ?>
-            <p class="muted">Masukkan nama atau ID anak untuk melihat rekam medis.</p>
-        <?php elseif (!$rekam_anak): ?>
-            <p class="muted">Anak tidak ditemukan.</p>
+        <?php if (!$rekam_anak): ?>
+            <p class="muted">Ketik nama anak di atas dan pilih dari dropdown untuk melihat rekam medik dan grafik.</p>
         <?php else: ?>
             <p><b>Nama:</b> <?= h($rekam_anak['nama']) ?> | <b>ID:</b> <?= h($rekam_anak['id_anak']) ?></p>
+
+            <h4 style="margin-top:16px;">📌 Rekam Medik</h4>
             <?php if (!$rekam_riwayat || $rekam_riwayat->num_rows === 0): ?>
                 <p class="muted">Belum ada riwayat medis.</p>
             <?php else: ?>
@@ -690,28 +719,8 @@ textarea { min-height: 50px; }
                 </div>
                 <?php endwhile; ?>
             <?php endif; ?>
-        <?php endif; ?>
-    </div>
-</div>
 
-<!-- ================= TAB GRAFIK ANAK ================= -->
-<div id="tabGrafik" class="perawat-tabContent">
-    <div class="box">
-        <h3>📊 Grafik Anak Tertentu</h3>
-        <form method="get" style="margin-bottom:12px;">
-            <?php if (!empty($selected['id'])): ?><input type="hidden" name="proses" value="<?= (int)$selected['id'] ?>"><?php endif; ?>
-            <label>Pilih Anak:</label>
-            <select name="grafik_anak_id" onchange="this.form.submit()" style="width:280px; padding:6px;">
-                <option value="">-- pilih anak --</option>
-                <?php $anak_list_tab->data_seek(0); while ($a = $anak_list_tab->fetch_assoc()): ?>
-                    <option value="<?= (int)$a['id_anak'] ?>" <?= $grafik_anak_id === (int)$a['id_anak'] ? 'selected' : '' ?>><?= h($a['nama']) ?></option>
-                <?php endwhile; ?>
-            </select>
-        </form>
-        <?php if (!$grafik_anak): ?>
-            <p class="muted">Pilih anak untuk melihat grafik kategori kunjungan.</p>
-        <?php else: ?>
-            <p><b><?= h($grafik_anak['nama']) ?></b> — Riwayat menurut kategori</p>
+            <h4 style="margin-top:20px;">📊 Grafik Kategori Kunjungan</h4>
             <?php
             $max_j = 0;
             foreach ($grafik_kategori as $gk) { if ($gk['jumlah'] > $max_j) $max_j = (int)$gk['jumlah']; }
@@ -751,6 +760,47 @@ document.querySelectorAll('.perawat-tab').forEach(function(btn){
         if(el) el.classList.add('active');
     });
 });
+
+// Rekam Medik & Grafik: dropdown saran nama (submit form dengan tab=rekam, tidak pindah tab)
+(function(){
+    var input = document.getElementById('rekam_search_input');
+    var dropdown = document.getElementById('rekam_suggest_dropdown');
+    var form = document.getElementById('formRekamGrafik');
+    var hiddenId = document.getElementById('rekam_anak_id');
+    if(!input || !dropdown || !form) return;
+    var timer;
+    input.addEventListener('input', function(){
+        var q = (this.value || '').trim();
+        clearTimeout(timer);
+        dropdown.style.display = 'none';
+        if(q.length < 2){ hiddenId.value = ''; return; }
+        timer = setTimeout(function(){
+            fetch('perawat.php?ajax=suggest_anak&q=' + encodeURIComponent(q))
+                .then(function(r){ return r.text(); })
+                .then(function(html){
+                    dropdown.innerHTML = html;
+                    dropdown.style.display = html ? 'block' : 'none';
+                    var items = dropdown.querySelectorAll('.perawat-suggest-item');
+                    items.forEach(function(item){
+                        item.addEventListener('click', function(e){
+                            e.preventDefault();
+                            var id = this.getAttribute('data-id');
+                            var nama = this.getAttribute('data-nama');
+                            if(id){ hiddenId.value = id; input.value = nama; }
+                            dropdown.style.display = 'none';
+                            form.submit();
+                        });
+                    });
+                });
+        }, 200);
+    });
+    input.addEventListener('focus', function(){
+        if(dropdown.innerHTML && (input.value || '').trim().length >= 2) dropdown.style.display = 'block';
+    });
+    document.addEventListener('click', function(e){
+        if(!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none';
+    });
+})();
 </script>
 
 <script>
