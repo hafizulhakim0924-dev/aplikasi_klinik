@@ -31,30 +31,20 @@ if (isset($_GET['nama']) && $_GET['nama'] !== "") {
 }
 ?>
 
+<link rel="stylesheet" href="style.css">
 <style>
-.search-box-wrapper { position: relative; width: 250px; }
-.search-box { padding: 7px; width: 100%; }
-.suggestion-list {
-    position: absolute; top: 37px; left: 0;
-    width: 100%; background: white; border: 1px solid #ccc;
-    border-radius: 4px; max-height: 200px; overflow-y: auto;
-    display: none; z-index: 999;
-}
-.suggestion-item { padding: 8px; cursor: pointer; }
-.suggestion-item:hover { background: #f0f0f0; }
-
-.status-badge { padding:4px 8px; border-radius:4px; font-weight:bold }
-.status-user { background:#fef3c7; color:#b45309 }
-.status-perawat { background:#dbeafe; color:#1e40af }
-.status-dokter { background:#ede9fe; color:#6d28d9 }
-.status-apotek { background:#dcfce7; color:#166534 }
-
-table { width:100%; border-collapse:collapse; margin-top:10px }
-th,td { border:1px solid #ccc; padding:6px; font-size:13px; vertical-align:top }
-th { background:#f3f3f3 }
+.search-box-wrapper { position: relative; width: 220px; }
+.search-box { padding: 6px 8px; width: 100%; font-size: 12px; }
+.suggestion-list { position: absolute; top: 32px; left: 0; width: 100%; background: var(--c-card); border: 1px solid var(--c-border); border-radius: 4px; max-height: 180px; overflow-y: auto; display: none; z-index: 999; font-size: 12px; }
+.suggestion-item { padding: 6px 8px; cursor: pointer; }
+.suggestion-item:hover { background: #f1f5f9; }
+.status-badge { padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 11px; }
+.status-user { background: #fef3c7; color: #b45309; }
+.status-perawat { background: #dbeafe; color: #1e40af; }
+.status-dokter { background: #ede9fe; color: #6d28d9; }
+.status-apotek { background: #dcfce7; color: #166534; }
 </style>
-
-<h2>Data Lengkap Semua Riwayat Pasien</h2>
+<h1 class="page-title">Data Riwayat Pasien – Klinik Risalah Medika</h1>
 
 <!-- SEARCH BOX + DROPDOWN AUTOSUGGEST -->
 <form method="GET">

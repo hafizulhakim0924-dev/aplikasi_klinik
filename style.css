@@ -1,0 +1,55 @@
+/* Klinik Risalah Medika - Dashboard compact modern */
+:root {
+    --c-bg: #f1f5f9;
+    --c-card: #fff;
+    --c-border: #e2e8f0;
+    --c-primary: #0f766e;
+    --c-primary-hover: #0d9488;
+    --c-text: #334155;
+    --c-muted: #64748b;
+    --c-danger: #dc2626;
+    --c-success: #059669;
+    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --radius: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+* { box-sizing: border-box; }
+body { font-family: var(--font); font-size: 13px; color: var(--c-text); margin: 0; padding: 0; background: var(--c-bg); line-height: 1.4; }
+.app-wrap { max-width: 1280px; margin: 0 auto; padding: 10px 14px; }
+.nav-bar { background: var(--c-primary); color: #fff; padding: 8px 14px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0 -14px 12px -14px; }
+.nav-bar .brand { font-weight: 700; font-size: 14px; margin-right: 12px; }
+.nav-bar a { color: rgba(255,255,255,0.95); text-decoration: none; font-size: 12px; padding: 4px 8px; border-radius: 4px; }
+.nav-bar a:hover { background: rgba(255,255,255,0.2); }
+.nav-bar .btn-logout, .nav-bar .btn-switch { padding: 5px 10px; font-size: 12px; border-radius: 4px; margin-left: auto; }
+.nav-bar .btn-logout { background: var(--c-danger); color: #fff; }
+.nav-bar .btn-switch { background: #7c3aed; color: #fff; }
+.card { background: var(--c-card); border: 1px solid var(--c-border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px; box-shadow: var(--shadow); }
+.card h3 { margin: 0 0 10px 0; font-size: 13px; font-weight: 600; color: var(--c-primary); border-bottom: 1px solid var(--c-border); padding-bottom: 6px; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th, td { border: 1px solid var(--c-border); padding: 6px 8px; text-align: left; }
+th { background: var(--c-primary); color: #fff; font-weight: 600; }
+input, select, textarea { font-size: 12px; padding: 6px 8px; border: 1px solid var(--c-border); border-radius: 4px; width: 100%; }
+label { display: block; margin-bottom: 2px; font-size: 12px; font-weight: 500; }
+.btn { display: inline-block; padding: 6px 12px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; background: var(--c-primary); color: #fff; }
+.btn:hover { background: var(--c-primary-hover); }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+.alert { padding: 8px 12px; border-radius: 4px; font-size: 12px; margin-bottom: 10px; }
+.alert-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+.alert-info { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+.two-col { display: flex; gap: 14px; }
+.left-col { width: 28%; min-width: 220px; }
+.right-col { flex: 1; }
+.page-title { font-size: 15px; font-weight: 600; color: var(--c-text); margin: 0 0 10px 0; }
+.muted { color: var(--c-muted); font-size: 11px; }
+.panel { background: var(--c-card); border: 1px solid var(--c-border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px; box-shadow: var(--shadow); }
+.panel h3, .panel h4 { margin: 0 0 8px 0; font-size: 12px; font-weight: 600; color: var(--c-primary); }
+.panel-info { border: 1px solid var(--c-border); padding: 8px 10px; background: #f8fafc; margin-bottom: 10px; border-radius: 4px; font-size: 12px; }
+.tabBtn { padding: 5px 10px; margin-right: 4px; cursor: pointer; font-size: 11px; border: 1px solid var(--c-border); background: #fff; border-radius: 4px; }
+.tabBtn:hover, .tabContent { margin-top: 8px; }
+.readonly-field { background: #f8fafc; border: 1px solid var(--c-border); padding: 5px 8px; border-radius: 4px; font-size: 12px; }
+.checklist-group { background: #f8fafc; border: 1px solid var(--c-border); padding: 8px 10px; border-radius: 4px; margin-bottom: 10px; }
+.checklist-group h5 { margin: 0 0 6px 0; font-size: 12px; }
+.checklist-item { margin-bottom: 4px; font-size: 12px; }
+.checklist-item input { width: auto; margin-right: 6px; }
+.left.panel { width: 32%; min-width: 200px; }
+.right.panel { flex: 1; }

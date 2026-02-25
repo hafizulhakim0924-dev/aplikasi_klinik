@@ -81,23 +81,14 @@ $antrian_q = $db->query("
     ORDER BY nomor_antrian ASC
 ");
 ?>
-
+<link rel="stylesheet" href="style.css">
+<h1 class="page-title">Pendaftaran – Klinik Risalah Medika</h1>
 <div class="two-col">
-
-<!-- ==========================
-         PANEL KIRI
-========================== -->
 <div class="left panel">
-    <h3>Pendaftaran Kunjungan Klinik</h3>
+    <h3>Pendaftaran Kunjungan</h3>
 
     <?php if (!empty($_GET['ok'])): ?>
-        <p style="color:green">
-            <b>Pendaftaran berhasil!</b><br>
-            Nomor Antrian Anda:
-            <span style="font-size:20px;color:blue">
-                <?= htmlspecialchars($_GET['antrian']) ?>
-            </span>
-        </p>
+        <div class="alert alert-success">Pendaftaran berhasil. No. Antrian: <strong><?= htmlspecialchars($_GET['antrian']) ?></strong></div>
     <?php endif; ?>
 
     <form method="get">
@@ -130,7 +121,7 @@ $antrian_q = $db->query("
 <div class="right panel">
     <h3>Antrian Menunggu</h3>
 
-    <table border="1" cellpadding="6" width="100%">
+    <table style="width:100%;">
         <tr>
             <th>No</th>
             <th>Nama Anak</th>

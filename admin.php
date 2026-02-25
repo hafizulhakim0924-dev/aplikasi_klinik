@@ -57,23 +57,15 @@ if($custom_start && !$custom_end) $custom_start = $custom_end = null;
 if($custom_end && !$custom_start) $custom_start = $custom_end = null;
 
 ?>
-
-<h2>Admin Dashboard — Rekap Klinik</h2>
-
-<!-- ========================= TAB BUTTON ======================= -->
+<link rel="stylesheet" href="style.css">
+<h1 class="page-title">Admin – Klinik Risalah Medika</h1>
 <button onclick="openTab('tabGlobal')" class="tabBtn">GLOBAL</button>
 <button onclick="openTab('tabWeek')" class="tabBtn">PEKAN INI</button>
 <button onclick="openTab('tabMonth')" class="tabBtn">BULAN INI</button>
 <button onclick="openTab('tabMonthToToday')" class="tabBtn">TGL 1 → HARI INI</button>
 <button onclick="openTab('tabCustom')" class="tabBtn">CUSTOM RANGE</button>
-
 <style>
-.tabBtn{
-    padding:8px 14px;margin-right:6px;background:#ddd;border:1px solid #888;cursor:pointer;
-}
-.tabContent{ display:none;margin-top:15px; }
-table{ border-collapse:collapse; }
-table td, table th{ padding:6px;border:1px solid #aaa; }
+.tabContent{ display:none; margin-top:10px; }
 </style>
 
 <!-- ========================================================= -->

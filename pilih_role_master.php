@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Switch: master yang sudah login mau ganti role
 $is_switch = isset($_GET['switch']) && $_GET['switch'] === '1';
 $is_master_session = ($is_switch && (
     (isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === 999) ||
@@ -30,32 +29,33 @@ if (!in_array($role, $allowed)) {
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Pilih Role - Master Login</title>
+        <title>Pilih Role - Klinik Risalah Medika</title>
+        <link rel="stylesheet" href="style.css">
         <style>
-            * { box-sizing: border-box; }
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-            .box { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 400px; width: 100%; text-align: center; }
-            .box h2 { margin: 0 0 0.5rem 0; color: #333; }
-            .box p { color: #666; margin-bottom: 1.5rem; }
-            .btn-role { display: block; width: 100%; padding: 14px; margin: 10px 0; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; text-decoration: none; color: #fff; text-align: center; }
-            .btn-role:hover { opacity: 0.9; }
+            .role-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 14px; }
+            .role-box { background: var(--c-card); padding: 20px 24px; border-radius: var(--radius); box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-width: 320px; width: 100%; border: 1px solid var(--c-border); text-align: center; }
+            .role-box .brand { font-size: 14px; font-weight: 700; color: var(--c-primary); margin-bottom: 12px; }
+            .role-box .btn-role { display: block; width: 100%; padding: 10px 12px; margin: 6px 0; border-radius: 4px; font-size: 12px; font-weight: 600; text-decoration: none; color: #fff; text-align: center; }
+            .role-box .btn-role:hover { opacity: 0.95; }
             .btn-dokter { background: #6d28d9; }
             .btn-perawat { background: #0d9488; }
             .btn-apoteker { background: #2563eb; }
             .btn-user { background: #64748b; }
-            .back { margin-top: 1rem; font-size: 0.9rem; }
-            .back a { color: #4a90d9; text-decoration: none; }
+            .role-box .back { margin-top: 14px; font-size: 11px; }
+            .role-box .back a { color: var(--c-primary); }
         </style>
     </head>
     <body>
-        <div class="box">
-            <h2>Master Login</h2>
-            <p>Pilih masuk sebagai:</p>
-            <a href="?role=dokter" class="btn-role btn-dokter">Dokter</a>
-            <a href="?role=perawat" class="btn-role btn-perawat">Perawat</a>
-            <a href="?role=apoteker" class="btn-role btn-apoteker">Apoteker</a>
-            <a href="?role=user" class="btn-role btn-user">User (Pendaftaran)</a>
-            <p class="back"><a href="index.php">← Kembali ke login</a></p>
+        <div class="role-page">
+            <div class="role-box">
+                <div class="brand">Klinik Risalah Medika</div>
+                <p class="muted">Pilih masuk sebagai:</p>
+                <a href="?role=dokter" class="btn-role btn-dokter">Dokter</a>
+                <a href="?role=perawat" class="btn-role btn-perawat">Perawat</a>
+                <a href="?role=apoteker" class="btn-role btn-apoteker">Apoteker</a>
+                <a href="?role=user" class="btn-role btn-user">User (Pendaftaran)</a>
+                <p class="back"><a href="index.php">← Kembali ke login</a></p>
+            </div>
         </div>
     </body>
     </html>
@@ -63,7 +63,6 @@ if (!in_array($role, $allowed)) {
     exit;
 }
 
-// Set session sesuai role dan redirect
 unset($_SESSION['master_auth']);
 
 if ($role === 'user') {
@@ -79,7 +78,6 @@ if ($role === 'perawat') {
     exit;
 }
 
-// Dokter & Apoteker pakai session users
 $_SESSION['user_id'] = 999;
 $_SESSION['username'] = 'masterlogin';
 $_SESSION['nama_lengkap'] = 'Master Login';

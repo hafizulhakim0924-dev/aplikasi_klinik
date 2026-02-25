@@ -13,55 +13,15 @@ function warnaStatus($s){
     }
 }
 ?>
-
+<link rel="stylesheet" href="style.css">
 <style>
-.status-badge { padding:4px 8px; font-weight:bold; border-radius:4px; }
+.status-badge { padding:2px 6px; font-weight:600; border-radius:4px; font-size:11px; }
 .status-user { background:#fef3c7;color:#b45309; }
 .status-perawat { background:#dbeafe;color:#1e40af; }
 .status-dokter { background:#ede9fe;color:#6d28d9; }
 .status-apotek { background:#dcfce7;color:#166534; }
-
-textarea, input[type=text], input[type=number], select {
-    width:100%; padding:6px; font-size:14px;
-}
-.panel-info {
-    border:1px solid #ccc; padding:10px; background:#f9f9f9; margin-bottom:15px;
-    border-radius:6px;
-}
-.tabContent { margin-top:10px; }
-.two-col { display:flex; gap:20px; align-items:flex-start; }
-.left.panel { width:38%; }
-.right.panel { width:62%; }
-button.tabBtn { padding:6px 10px; margin-right:6px; cursor:pointer; }
-.small-muted { color:#666; font-size:13px; }
-.readonly-field { background:#fff; border:1px solid #e1e1e1; padding:6px; border-radius:4px; }
-
-.checklist-group {
-    background: #f5f5f5;
-    border: 1px solid #ddd;
-    padding: 12px;
-    border-radius: 6px;
-    margin-bottom: 15px;
-}
-.checklist-group h5 {
-    margin: 0 0 10px 0;
-    color: #333;
-    font-size: 14px;
-}
-.checklist-item {
-    margin-bottom: 8px;
-}
-.checklist-item label {
-    display: inline-flex;
-    align-items: center;
-    cursor: pointer;
-    font-size: 14px;
-}
-.checklist-item input[type="radio"] {
-    width: auto;
-    margin-right: 8px;
-    cursor: pointer;
-}
+.small-muted { color:var(--c-muted); font-size:11px; }
+.two-col { gap:12px; }
 </style>
 
 <?php
@@ -177,11 +137,8 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['simpan_dokter'])){
 }
 ?>
 
-<h2>Panel Dokter – Pemeriksaan Pasien</h2>
-
-<?php if(isset($_GET['sukses'])): ?>
-<p style="color:green;">Data dokter berhasil disimpan.</p>
-<?php endif; ?>
+<h1 class="page-title">Panel Dokter – Pemeriksaan Pasien</h1>
+<?php if(isset($_GET['sukses'])): ?><div class="alert alert-success">Data dokter berhasil disimpan.</div><?php endif; ?>
 
 <div class="two-col">
 
@@ -192,7 +149,7 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['simpan_dokter'])){
     <?php if($list->num_rows==0): ?>
         <p>Tidak ada pasien.</p>
     <?php else: ?>
-        <table border="1" cellpadding="6" style="width:100%; border-collapse:collapse;">
+        <table style="width:100%;">
             <tr><th>No</th><th>Nama Anak</th><th>Aksi</th></tr>
             <?php while($p=$list->fetch_assoc()): ?>
                 <tr>

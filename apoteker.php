@@ -76,19 +76,14 @@ if(isset($_POST['selesai_obat'])){
 }
 ?>
 
-<h2>Panel Apoteker</h2>
-
-<?php if(isset($_GET['done'])): ?>
-<p style="color:green;">✔ Obat berhasil diserahkan & stok sudah diperbarui.</p>
-<?php endif; ?>
+<link rel="stylesheet" href="style.css">
+<h1 class="page-title">Panel Apoteker</h1>
+<?php if(isset($_GET['done'])): ?><div class="alert alert-success">✔ Obat berhasil diserahkan & stok diperbarui.</div><?php endif; ?>
 
 <div class="two-col">
-
-<!-- ================= LIST PASIEN ================= -->
 <div class="left panel">
     <h3>Daftar Pasien</h3>
-
-    <table border="1" cellpadding="6" style="width:100%;">
+    <table style="width:100%;">
     <tr>
         <th>Antrian</th>
         <th>Nama Anak</th>
@@ -117,7 +112,7 @@ if(isset($_POST['selesai_obat'])){
 <hr>
 
 <!-- ================= PANEL INFORMASI FROM PERAWAT & DOKTER ================= -->
-<div style="border:1px solid #ccc; padding:12px; background:#f9f9f9; border-radius:6px; margin-bottom:20px;">
+<div class="panel-info" style="margin-bottom:14px;">
 
     <h3>🩺 Informasi Medis Pasien</h3>
 

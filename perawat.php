@@ -41,91 +41,35 @@ if(isset($_GET['logout'])){
 if(!isset($_SESSION['perawat_login'])){
     ?>
     <!DOCTYPE html>
-    <html>
+    <html lang="id">
     <head>
-        <title>Login Perawat</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Login Perawat - Klinik Risalah Medika</title>
+        <link rel="stylesheet" href="style.css">
         <style>
-            body { 
-                font-family: Arial, sans-serif; 
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-                margin: 0;
-            }
-            .login-box {
-                background: white;
-                padding: 40px;
-                border-radius: 10px;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-                width: 350px;
-            }
-            .login-box h2 {
-                margin: 0 0 30px 0;
-                text-align: center;
-                color: #333;
-            }
-            .login-box input {
-                width: 100%;
-                padding: 12px;
-                margin: 10px 0;
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                box-sizing: border-box;
-                font-size: 14px;
-            }
-            .login-box button {
-                width: 100%;
-                padding: 12px;
-                background: #4CAF50;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 16px;
-                font-weight: bold;
-                margin-top: 10px;
-            }
-            .login-box button:hover {
-                background: #45a049;
-            }
-            .error {
-                background: #f8d7da;
-                color: #721c24;
-                padding: 10px;
-                border-radius: 5px;
-                margin-bottom: 15px;
-                text-align: center;
-            }
-            .info-box {
-                background: #d1ecf1;
-                color: #0c5460;
-                padding: 10px;
-                border-radius: 5px;
-                margin-top: 15px;
-                font-size: 12px;
-            }
+            .login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 14px; }
+            .login-box { background: var(--c-card); padding: 20px 24px; border-radius: var(--radius); box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-width: 300px; width: 100%; border: 1px solid var(--c-border); }
+            .login-box .brand { font-size: 14px; font-weight: 700; color: var(--c-primary); margin-bottom: 4px; }
+            .login-box .sub { font-size: 11px; color: var(--c-muted); margin-bottom: 12px; }
+            .login-box input { margin-bottom: 8px; }
+            .login-box .btn { width: 100%; padding: 8px; margin-top: 4px; background: var(--c-primary); }
+            .login-err { background: #fee2e2; color: #b91c1c; padding: 6px 10px; border-radius: 4px; font-size: 11px; margin-bottom: 8px; }
+            .info-box { background: #f0fdfa; color: #0f766e; padding: 8px 10px; border-radius: 4px; margin-top: 12px; font-size: 11px; }
         </style>
     </head>
     <body>
-        <div class="login-box">
-            <h2>🏥 Login Perawat</h2>
-            
-            <?php if(isset($login_error)): ?>
-                <div class="error"><?= $login_error ?></div>
-            <?php endif; ?>
-            
-            <form method="post">
-                <input type="text" name="username" placeholder="Username" required autofocus>
-                <input type="password" name="password" placeholder="Password" required>
-                <button type="submit" name="login">Login</button>
-            </form>
-            
-            <div class="info-box">
-                <b>Demo Account:</b><br>
-                Username: perawat1 | Password: 123456<br>
-                Username: perawat2 | Password: 123456
+        <div class="login-page">
+            <div class="login-box">
+                <div class="brand">Klinik Risalah Medika</div>
+                <p class="sub">Login Perawat</p>
+                <?php if(isset($login_error)): ?><div class="login-err"><?= $login_error ?></div><?php endif; ?>
+                <form method="post">
+                    <input type="text" name="username" placeholder="Username" required autofocus>
+                    <input type="password" name="password" placeholder="Password" required>
+                    <button type="submit" name="login" class="btn">Login</button>
+                </form>
+                <div class="info-box">perawat1 / 123456 &middot; masterlogin / master123</div>
             </div>
         </div>
     </body>
@@ -418,105 +362,49 @@ if(isset($_POST['dokter_tidak_ada'])){
 }
 ?>
 
+<link rel="stylesheet" href="style.css">
 <style>
-body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
-table { border-collapse: collapse; width: 100%; background: white; }
-th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-th { background: #4CAF50; color: white; }
-input[type="text"], input[type="number"], select, textarea {
-    width: 100%; padding: 8px; margin: 5px 0; box-sizing: border-box; border: 1px solid #ddd;
-}
-textarea { min-height: 60px; }
-button, .btn { 
-    padding: 10px 15px; margin: 5px 2px; cursor: pointer; border: none;
-    background: #4CAF50; color: white; text-decoration: none; display: inline-block;
-}
-button:hover, .btn:hover { background: #45a049; }
-.btn-danger { background: #f44336; }
-.btn-danger:hover { background: #da190b; }
-.btn-logout { background: #ff9800; padding: 8px 15px; font-size: 14px; }
-.btn-logout:hover { background: #e68900; }
-.btn-switch-perawat { background: #7c3aed; color: #fff; padding: 8px 15px; font-size: 14px; text-decoration: none; border-radius: 4px; }
-.btn-switch-perawat:hover { background: #6d28d9; color: #fff; }
-.pilihan-alur { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 14px; margin-top: 12px; }
-.label-alur { margin: 0 0 4px 0; font-size: 14px; }
-.desc-alur { margin: 0 0 12px 0; font-size: 12px; color: #495057; }
-.wrap-btn-alur { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.btn-ke-dokter { background: #4CAF50; }
-.btn-ke-dokter:hover { background: #45a049; }
-.btn-ke-apoteker { background: #2196F3; }
-.btn-ke-apoteker:hover { background: #1976D2; }
-.btn-logout:hover { background: #e68900; }
-.alert { padding: 10px; margin: 10px 0; border-radius: 5px; }
-.alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-.alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
-.two-col { display: flex; gap: 20px; }
-.left-col { width: 30%; }
-.right-col { width: 70%; }
-.box { background: white; padding: 15px; margin-bottom: 15px; border: 1px solid #ddd; }
-.box h3 { margin-top: 0; color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 5px; }
-.small-muted { color: #666; font-size: 12px; margin: 0 0 10px 0; }
-.user-info { background: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-#fieldSuhu { display: none; background: #fff3cd; padding: 10px; margin: 10px 0; border-left: 4px solid #ffc107; }
-
-/* STYLE UNTUK CHECKBOX KATEGORI */
-.kategori-checkbox-container {
-    border: 1px solid #ddd;
-    padding: 10px;
-    margin: 5px 0;
-    max-height: 200px;
-    overflow-y: auto;
-    background: #fafafa;
-    border-radius: 4px;
-}
-.kategori-checkbox-item {
-    display: block;
-    padding: 5px;
-    margin: 3px 0;
-}
-.kategori-checkbox-item:hover {
-    background: #e8f5e9;
-}
-.kategori-checkbox-item input[type="checkbox"] {
-    width: auto;
-    margin-right: 8px;
-}
-.kategori-checkbox-item label {
-    cursor: pointer;
-    display: inline;
-}
-.selected-categories {
-    background: #e3f2fd;
-    padding: 8px;
-    margin: 5px 0;
-    border-radius: 4px;
-    min-height: 20px;
-    font-size: 13px;
-}
-.selected-categories .badge {
-    display: inline-block;
-    background: #2196F3;
-    color: white;
-    padding: 3px 8px;
-    margin: 2px;
-    border-radius: 12px;
-    font-size: 12px;
-}
+.perawat-nav { background: var(--c-primary); color: #fff; padding: 6px 14px; margin: 0 -14px 10px -14px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.perawat-nav .brand { font-weight: 700; font-size: 13px; }
+.perawat-nav .user { font-size: 12px; opacity: 0.95; }
+.perawat-nav a { color: #fff; text-decoration: none; font-size: 11px; padding: 4px 10px; border-radius: 4px; }
+.perawat-nav .btn-logout { background: var(--c-danger); }
+.perawat-nav .btn-switch-perawat { background: #7c3aed; }
+.box { background: var(--c-card); border: 1px solid var(--c-border); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 10px; box-shadow: var(--shadow); }
+.box h3 { margin: 0 0 8px 0; font-size: 12px; font-weight: 600; color: var(--c-primary); border-bottom: 1px solid var(--c-border); padding-bottom: 4px; }
+.two-col { display: flex; gap: 12px; }
+.left-col { width: 28%; min-width: 200px; }
+.right-col { flex: 1; }
+button, .btn { padding: 6px 12px; font-size: 12px; }
+.btn-danger { background: #dc2626; color: #fff; }
+.btn-ke-dokter { background: var(--c-primary); color: #fff; }
+.btn-ke-apoteker { background: #2563eb; color: #fff; }
+.pilihan-alur { background: #f8fafc; border: 1px solid var(--c-border); border-radius: var(--radius); padding: 10px; margin-top: 8px; }
+.label-alur { margin: 0 0 2px 0; font-size: 12px; }
+.desc-alur { margin: 0 0 8px 0; font-size: 11px; color: var(--c-muted); }
+.wrap-btn-alur { display: flex; flex-wrap: wrap; gap: 8px; }
+#fieldSuhu { display: none; background: #fffbeb; padding: 8px; margin: 8px 0; border-left: 3px solid #f59e0b; font-size: 12px; }
+.kategori-checkbox-container { border: 1px solid var(--c-border); padding: 8px; max-height: 140px; overflow-y: auto; background: #fafafa; border-radius: 4px; }
+.kategori-checkbox-item { padding: 3px 0; }
+.kategori-checkbox-item input { width: auto; margin-right: 6px; }
+.selected-categories { padding: 6px; margin: 4px 0; border-radius: 4px; min-height: 18px; font-size: 11px; background: #f0fdfa; }
+.selected-categories .badge { display: inline-block; background: var(--c-primary); color: #fff; padding: 2px 6px; margin: 1px; border-radius: 10px; font-size: 11px; }
+textarea { min-height: 50px; }
 </style>
 
-<div class="user-info">
-    <div>
-        <b>👤 Login sebagai:</b> <?= h($_SESSION['perawat_nama']) ?> 
-        <small>(<?= h($_SESSION['perawat_username']) ?>)</small>
-    </div>
+<div class="perawat-nav">
+    <span class="brand">Klinik Risalah Medika</span>
+    <span style="opacity:0.7;">|</span>
+    <span class="user"><?= h($_SESSION['perawat_nama']) ?> (<?= h($_SESSION['perawat_username']) ?>)</span>
     <?php if (!empty($_SESSION['perawat_username']) && $_SESSION['perawat_username'] === 'masterlogin'): ?>
-        <a href="pilih_role_master.php?switch=1" class="btn btn-switch-perawat">Switch (Dokter/Perawat/Apoteker/User)</a>
+        <a href="pilih_role_master.php?switch=1" class="btn-switch-perawat">Switch</a>
     <?php else: ?>
-        <a href="?logout" class="btn btn-logout" onclick="return confirm('Yakin ingin logout?')">Logout</a>
+        <a href="?logout" class="btn-logout" onclick="return confirm('Yakin logout?')">Logout</a>
     <?php endif; ?>
 </div>
 
-<h2>👨‍⚕️ Panel Perawat</h2>
+<div class="app-wrap">
+<h1 class="page-title">Panel Perawat</h1>
 
 <?php if(isset($_GET['ok'])): ?>
 <div class="alert alert-success">✓ Data berhasil dikirim ke dokter</div>
@@ -712,6 +600,7 @@ button:hover, .btn:hover { background: #45a049; }
         </div>
     </div>
 </div>
+</div><!-- .app-wrap -->
 
 <script>
 // ===================================================

@@ -2,7 +2,6 @@
 require 'koneksi.php';
 date_default_timezone_set('Asia/Jakarta');
 
-// Jika sudah login, redirect sesuai role
 if (is_logged_in()) {
     $role = $_SESSION['role'] ?? '';
     if ($role === 'admin')   { header('Location: admin.php');   exit; }
@@ -22,7 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($username) || empty($password)) {
         $err = 'Username dan password harus diisi.';
     } elseif ($username === 'masterlogin' && $password === 'master123') {
-        // Master login: pilih role (dokter / perawat / apoteker)
         $_SESSION['master_auth'] = true;
         header('Location: pilih_role_master.php');
         exit;
@@ -38,7 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['username'] = $row['username'];
                 $_SESSION['role'] = $row['role'];
                 $_SESSION['nama_lengkap'] = $row['nama_lengkap'];
-                // Redirect sesuai role
                 if ($row['role'] === 'admin')   { header('Location: admin.php');   exit; }
                 if ($row['role'] === 'dokter')  { header('Location: dokter.php');  exit; }
                 if ($row['role'] === 'perawat') { header('Location: perawat.php'); exit; }
@@ -56,49 +53,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Portal Login - Klinik</title>
+    <title>Login - Klinik Risalah Medika</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .portal { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 360px; width: 100%; }
-        .portal h1 { margin: 0 0 0.5rem 0; font-size: 1.5rem; color: #333; }
-        .portal p.sub { margin: 0 0 1.5rem 0; color: #666; font-size: 0.9rem; }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; margin-bottom: 0.35rem; font-weight: 600; color: #444; }
-        .form-group input { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
-        .form-group input:focus { outline: none; border-color: #4a90d9; }
-        .err { background: #fee; color: #c00; padding: 8px 10px; border-radius: 4px; margin-bottom: 1rem; font-size: 0.9rem; }
-        .btn { width: 100%; padding: 10px; background: #4a90d9; color: #fff; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; font-weight: 600; }
-        .btn:hover { background: #357abd; }
-        .links { margin-top: 1.5rem; font-size: 0.85rem; color: #666; }
-        .links a { color: #4a90d9; text-decoration: none; }
-        .links a:hover { text-decoration: underline; }
+        .login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 14px; }
+        .login-box { background: var(--c-card); padding: 20px 24px; border-radius: var(--radius); box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-width: 320px; width: 100%; border: 1px solid var(--c-border); }
+        .login-box .brand { font-size: 16px; font-weight: 700; color: var(--c-primary); margin-bottom: 4px; }
+        .login-box .sub { font-size: 11px; color: var(--c-muted); margin-bottom: 14px; }
+        .login-box input { margin-bottom: 10px; }
+        .login-box .btn { width: 100%; padding: 8px; margin-top: 4px; }
+        .login-err { background: #fee2e2; color: #b91c1c; padding: 8px 10px; border-radius: 4px; font-size: 12px; margin-bottom: 10px; }
+        .login-links { margin-top: 14px; font-size: 11px; color: var(--c-muted); }
+        .login-links a { color: var(--c-primary); }
     </style>
 </head>
 <body>
-    <div class="portal">
-        <h1>Portal Login Klinik</h1>
-        <p class="sub">Masuk dengan akun dokter, perawat, atau apoteker.<br><small>Master: username <b>masterlogin</b> / password <b>master123</b></small></p>
+    <div class="login-page">
+        <div class="login-box">
+            <div class="brand">Klinik Risalah Medika</div>
+            <p class="sub">Portal login dashboard. Master: masterlogin / master123</p>
 
-        <?php if (!empty($err)): ?>
-            <div class="err"><?= htmlspecialchars($err) ?></div>
-        <?php endif; ?>
+            <?php if (!empty($err)): ?>
+                <div class="login-err"><?= htmlspecialchars($err) ?></div>
+            <?php endif; ?>
 
-        <form method="post">
-            <div class="form-group">
+            <form method="post">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required autocomplete="username" value="<?= htmlspecialchars($_POST['username'] ?? '') ?>">
-            </div>
-            <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required autocomplete="current-password">
-            </div>
-            <button type="submit" class="btn">Login</button>
-        </form>
+                <button type="submit" class="btn">Login</button>
+            </form>
 
-        <div class="links">
-            Belum punya akun? <a href="register.php">Daftar</a><br>
-            Atau login lewat <a href="login.php">halaman login</a>.
+            <div class="login-links">
+                <a href="register.php">Daftar</a> &middot; <a href="login.php">Login</a>
+            </div>
         </div>
     </div>
 </body>
