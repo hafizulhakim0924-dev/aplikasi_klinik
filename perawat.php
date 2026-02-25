@@ -276,6 +276,41 @@ if(isset($_GET['proses'])){
     }
 }
 
+// ========================= DATA TAB CEK REKAM MEDIK & GRAFIK =========================
+$anak_list_tab = $db->query("SELECT id_anak, nama FROM anak ORDER BY nama ASC");
+
+$rekam_q = trim($_GET['rekam_q'] ?? '');
+$rekam_anak = null;
+$rekam_riwayat = null;
+if ($rekam_q !== '') {
+    $stmt_r = $db->prepare("SELECT * FROM anak WHERE nama LIKE ? OR id_anak = ? LIMIT 1");
+    $kr = "%$rekam_q%";
+    $stmt_r->bind_param("si", $kr, $rekam_q);
+    $stmt_r->execute();
+    $rekam_anak = $stmt_r->get_result()->fetch_assoc();
+    $stmt_r->close();
+    if ($rekam_anak) {
+        $rekam_riwayat = $db->query("SELECT * FROM riwayat_kesehatan WHERE anak_id=".(int)$rekam_anak['id_anak']." ORDER BY created_at DESC");
+    }
+}
+
+$grafik_anak_id = (int)($_GET['grafik_anak_id'] ?? 0);
+$grafik_anak = null;
+$grafik_kategori = [];
+if ($grafik_anak_id > 0) {
+    $grafik_anak = $db->query("SELECT * FROM anak WHERE id_anak=$grafik_anak_id LIMIT 1")->fetch_assoc();
+    if ($grafik_anak) {
+        $res_kat = $db->query("
+            SELECT kategori, COUNT(*) AS jumlah FROM riwayat_kesehatan
+            WHERE anak_id=$grafik_anak_id AND kategori IS NOT NULL AND kategori != ''
+            GROUP BY kategori ORDER BY jumlah DESC
+        ");
+        while ($row = $res_kat->fetch_assoc()) {
+            $grafik_kategori[] = $row;
+        }
+    }
+}
+
 // ========================= SIMPAN ================================
 if(isset($_POST['simpan'])){
     $pasien_id = (int)$_POST['pasien_id'];
@@ -288,6 +323,7 @@ if(isset($_POST['simpan'])){
     $tinggi = ($_POST['tinggi']==''? null : (int)$_POST['tinggi']);
     $berat = ($_POST['berat']==''? null : (float)$_POST['berat']);
     $cat = trim($_POST['catatan_perawat']);
+    $catatan_kategori = trim($_POST['catatan_kategori'] ?? '');
     $resep_perawat = trim($_POST['resep_perawat']);
     $nama_perawat = $_SESSION['perawat_nama'];
     $suhu_demam = ($_POST['suhu_demam']==''? null : (float)$_POST['suhu_demam']);
@@ -295,19 +331,20 @@ if(isset($_POST['simpan'])){
     $upd = $db->prepare("
         UPDATE riwayat_kesehatan 
         SET kategori=?, td=?, tinggi_cm=?, berat_kg=?, 
-            catatan_perawat=?, resep_perawat=?, suhu_demam=?, 
+            catatan_perawat=?, catatan_kategori=?, resep_perawat=?, suhu_demam=?, 
             status_akhir='perawat_selesai', 
             updated_at=NOW(), nama_perawat=?
         WHERE pasien_id=? LIMIT 1
     ");
 
     $upd->bind_param(
-        "ssssssssi",
+        "sssssssssi",
         $kategori_penyakit,
         $td,
         $tinggi,
         $berat,
         $cat,
+        $catatan_kategori,
         $resep_perawat,
         $suhu_demam,
         $nama_perawat,
@@ -338,19 +375,20 @@ if(isset($_POST['dokter_tidak_ada'])){
     $tinggi = ($_POST['tinggi']==''? null : (int)$_POST['tinggi']);
     $berat = ($_POST['berat']==''? null : (float)$_POST['berat']);
     $cat = trim($_POST['catatan_perawat']);
+    $catatan_kategori = trim($_POST['catatan_kategori'] ?? '');
     $resep_perawat = trim($_POST['resep_perawat']);
     $nama_perawat = $_SESSION['perawat_nama'];
     $suhu_demam = ($_POST['suhu_demam']==''? null : (float)$_POST['suhu_demam']);
 
     $upd = $db->prepare("
         UPDATE riwayat_kesehatan 
-        SET kategori=?, td=?, tinggi_cm=?, berat_kg=?, catatan_perawat=?, 
+        SET kategori=?, td=?, tinggi_cm=?, berat_kg=?, catatan_perawat=?, catatan_kategori=?,
             resep_perawat=?, suhu_demam=?, status_akhir='resep_dari_perawat', 
             updated_at=NOW(), nama_perawat=?
         WHERE pasien_id=? LIMIT 1
     ");
-    $upd->bind_param("sssssssi",
-        $kategori_penyakit,$td,$tinggi,$berat,$cat,$resep_perawat,
+    $upd->bind_param("ssssssssi",
+        $kategori_penyakit,$td,$tinggi,$berat,$cat,$catatan_kategori,$resep_perawat,
         $suhu_demam,$nama_perawat,$pasien_id
     );
     $upd->execute();
@@ -384,6 +422,15 @@ button, .btn { padding: 6px 12px; font-size: 12px; }
 .desc-alur { margin: 0 0 8px 0; font-size: 11px; color: var(--c-muted); }
 .wrap-btn-alur { display: flex; flex-wrap: wrap; gap: 8px; }
 #fieldSuhu { display: none; background: #fffbeb; padding: 8px; margin: 8px 0; border-left: 3px solid #f59e0b; font-size: 12px; }
+#fieldKeteranganKategori { display: none; background: #f0fdfa; padding: 8px; margin: 8px 0; border-left: 3px solid var(--c-primary); }
+.perawat-tab { padding: 5px 12px; margin-right: 4px; cursor: pointer; font-size: 12px; border: 1px solid var(--c-border); background: #fff; border-radius: 4px; }
+.perawat-tab.active { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+.perawat-tabContent { display: none; }
+.perawat-tabContent.active { display: block; }
+.grafik-bar { height: 20px; background: var(--c-primary); border-radius: 4px; }
+.grafik-bar-wrap { background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
+.record-box { border: 1px solid var(--c-border); padding: 8px 10px; margin-bottom: 6px; border-radius: 4px; background: #f8fafc; cursor: pointer; }
+.record-detail { display: none; background: #fff; border: 1px solid var(--c-border); padding: 10px; border-radius: 4px; margin-top: 6px; font-size: 12px; }
 .kategori-checkbox-container { border: 1px solid var(--c-border); padding: 8px; max-height: 140px; overflow-y: auto; background: #fafafa; border-radius: 4px; }
 .kategori-checkbox-item { padding: 3px 0; }
 .kategori-checkbox-item input { width: auto; margin-right: 6px; }
@@ -418,6 +465,11 @@ textarea { min-height: 50px; }
 <div class="alert alert-success">✓ Pasien berhasil didaftarkan. No. Antrian: <strong><?= (int)($_GET['antrian'] ?? '') ?></strong></div>
 <?php endif; ?>
 
+<button type="button" class="perawat-tab active" data-tab="tabPemeriksaan">Antrian & Pemeriksaan</button>
+<button type="button" class="perawat-tab" data-tab="tabRekamMedik">Cek Rekam Medik</button>
+<button type="button" class="perawat-tab" data-tab="tabGrafik">Grafik Anak</button>
+
+<div id="tabPemeriksaan" class="perawat-tabContent active">
 <div class="two-col">
     <!-- KOLOM KIRI -->
     <div class="left-col">
@@ -527,6 +579,12 @@ textarea { min-height: 50px; }
                         <?php endforeach; ?>
                     </div>
 
+                    <!-- Keterangan kategori (muncul ketika ada kategori dipilih) -->
+                    <div id="fieldKeteranganKategori">
+                        <label><b>📝 Keterangan untuk kategori yang dipilih:</b></label>
+                        <textarea name="catatan_kategori" rows="2" placeholder="Misal: Demam - suhu 38°C, menggigil; Batuk - batuk kering"></textarea>
+                    </div>
+
                     <!-- Field Suhu (muncul jika pilih Demam) -->
                     <div id="fieldSuhu">
                         <label><b>🌡️ Suhu Tubuh (°C):</b></label>
@@ -600,7 +658,100 @@ textarea { min-height: 50px; }
         </div>
     </div>
 </div>
-</div><!-- .app-wrap -->
+</div><!-- #tabPemeriksaan -->
+
+<!-- ================= TAB CEK REKAM MEDIK ================= -->
+<div id="tabRekamMedik" class="perawat-tabContent">
+    <div class="box">
+        <h3>🔎 Cek Rekam Medik</h3>
+        <form method="get" style="margin-bottom:12px;">
+            <?php if (!empty($selected['id'])): ?><input type="hidden" name="proses" value="<?= (int)$selected['id'] ?>"><?php endif; ?>
+            <input type="text" name="rekam_q" placeholder="Cari nama anak atau ID..." value="<?= h($rekam_q) ?>" style="padding:6px 10px; width:260px;">
+            <button type="submit" class="btn">Cari</button>
+        </form>
+        <?php if ($rekam_q === ''): ?>
+            <p class="muted">Masukkan nama atau ID anak untuk melihat rekam medis.</p>
+        <?php elseif (!$rekam_anak): ?>
+            <p class="muted">Anak tidak ditemukan.</p>
+        <?php else: ?>
+            <p><b>Nama:</b> <?= h($rekam_anak['nama']) ?> | <b>ID:</b> <?= h($rekam_anak['id_anak']) ?></p>
+            <?php if (!$rekam_riwayat || $rekam_riwayat->num_rows === 0): ?>
+                <p class="muted">Belum ada riwayat medis.</p>
+            <?php else: ?>
+                <?php $cnt = 0; while ($r = $rekam_riwayat->fetch_assoc()): $cnt++; ?>
+                <div class="record-box" onclick="var d=document.getElementById('rekamDetail<?= $cnt ?>'); d.style.display=d.style.display==='block'?'none':'block';">
+                    <b>📌 <?= date('d M Y H:i', strtotime($r['created_at'])) ?></b> — Kategori: <?= h($r['kategori'] ?? '-') ?>
+                </div>
+                <div id="rekamDetail<?= $cnt ?>" class="record-detail">
+                    <b>Keluhan:</b> <?= nl2br(h($r['keluhan'] ?? '-')) ?><br>
+                    <b>Catatan Perawat:</b> <?= nl2br(h($r['catatan_perawat'] ?? '-')) ?><br>
+                    <?php if (!empty($r['catatan_kategori'])): ?><b>Keterangan Kategori:</b> <?= nl2br(h($r['catatan_kategori'])) ?><br><?php endif; ?>
+                    <b>Diagnosa:</b> <?= nl2br(h($r['diagnosa'] ?? '-')) ?><br>
+                </div>
+                <?php endwhile; ?>
+            <?php endif; ?>
+        <?php endif; ?>
+    </div>
+</div>
+
+<!-- ================= TAB GRAFIK ANAK ================= -->
+<div id="tabGrafik" class="perawat-tabContent">
+    <div class="box">
+        <h3>📊 Grafik Anak Tertentu</h3>
+        <form method="get" style="margin-bottom:12px;">
+            <?php if (!empty($selected['id'])): ?><input type="hidden" name="proses" value="<?= (int)$selected['id'] ?>"><?php endif; ?>
+            <label>Pilih Anak:</label>
+            <select name="grafik_anak_id" onchange="this.form.submit()" style="width:280px; padding:6px;">
+                <option value="">-- pilih anak --</option>
+                <?php $anak_list_tab->data_seek(0); while ($a = $anak_list_tab->fetch_assoc()): ?>
+                    <option value="<?= (int)$a['id_anak'] ?>" <?= $grafik_anak_id === (int)$a['id_anak'] ? 'selected' : '' ?>><?= h($a['nama']) ?></option>
+                <?php endwhile; ?>
+            </select>
+        </form>
+        <?php if (!$grafik_anak): ?>
+            <p class="muted">Pilih anak untuk melihat grafik kategori kunjungan.</p>
+        <?php else: ?>
+            <p><b><?= h($grafik_anak['nama']) ?></b> — Riwayat menurut kategori</p>
+            <?php
+            $max_j = 0;
+            foreach ($grafik_kategori as $gk) { if ($gk['jumlah'] > $max_j) $max_j = (int)$gk['jumlah']; }
+            ?>
+            <?php if (empty($grafik_kategori)): ?>
+                <p class="muted">Belum ada data kategori.</p>
+            <?php else: ?>
+                <table style="width:100%; max-width:500px;">
+                    <tr><th>Kategori</th><th>Jumlah</th><th>Grafik</th></tr>
+                    <?php foreach ($grafik_kategori as $gk):
+                        $pct = $max_j > 0 ? round(($gk['jumlah'] / $max_j) * 100) : 0;
+                    ?>
+                    <tr>
+                        <td><?= h($gk['kategori']) ?></td>
+                        <td><?= $gk['jumlah'] ?>x</td>
+                        <td style="width:180px;">
+                            <div class="grafik-bar-wrap" style="height:18px;">
+                                <div class="grafik-bar" style="width:<?= $pct ?>%;"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </table>
+            <?php endif; ?>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.perawat-tab').forEach(function(btn){
+    btn.addEventListener('click', function(){
+        var tabId = this.getAttribute('data-tab');
+        document.querySelectorAll('.perawat-tab').forEach(function(b){ b.classList.remove('active'); });
+        document.querySelectorAll('.perawat-tabContent').forEach(function(c){ c.classList.remove('active'); });
+        this.classList.add('active');
+        var el = document.getElementById(tabId);
+        if(el) el.classList.add('active');
+    });
+});
+</script>
 
 <script>
 // ===================================================
@@ -609,6 +760,7 @@ textarea { min-height: 50px; }
 const checkboxes = document.querySelectorAll('.kategori-checkbox');
 const displayArea = document.getElementById('selectedCategoriesDisplay');
 const fieldSuhu = document.getElementById('fieldSuhu');
+const fieldKeterangan = document.getElementById('fieldKeteranganKategori');
 
 function updateSelectedDisplay() {
     const selected = Array.from(checkboxes)
@@ -617,17 +769,17 @@ function updateSelectedDisplay() {
     
     if(selected.length === 0) {
         displayArea.innerHTML = '<small style="color:#666;">Belum ada kategori dipilih</small>';
-        fieldSuhu.style.display = 'none';
+        if(fieldSuhu) fieldSuhu.style.display = 'none';
+        if(fieldKeterangan) fieldKeterangan.style.display = 'none';
     } else {
         displayArea.innerHTML = selected
             .map(cat => `<span class="badge">${cat}</span>`)
             .join('');
-        
-        // Show field suhu jika ada yang pilih "Demam"
+        if(fieldKeterangan) fieldKeterangan.style.display = 'block';
         if(selected.includes('Demam')) {
-            fieldSuhu.style.display = 'block';
+            if(fieldSuhu) fieldSuhu.style.display = 'block';
         } else {
-            fieldSuhu.style.display = 'none';
+            if(fieldSuhu) fieldSuhu.style.display = 'none';
         }
     }
 }
