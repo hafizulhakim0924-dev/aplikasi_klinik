@@ -6,6 +6,7 @@ if(is_logged_in()){
     if($r==='perawat') header('Location: perawat.php');
     if($r==='dokter') header('Location: dokter.php');
     if($r==='apoteker') header('Location: apoteker.php');
+    if($r==='direktur') header('Location: direktur.php');
     header('Location: user.php');
     exit;
 }
@@ -36,6 +37,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
             if($row['role'] === 'perawat') header('Location: perawat.php');
             if($row['role'] === 'dokter') header('Location: dokter.php');
             if($row['role'] === 'apoteker') header('Location: apoteker.php');
+            if($row['role'] === 'direktur') header('Location: direktur.php');
             header('Location: user.php');
             exit;
         } else {

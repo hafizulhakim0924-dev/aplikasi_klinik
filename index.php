@@ -4,10 +4,11 @@ date_default_timezone_set('Asia/Jakarta');
 
 if (is_logged_in()) {
     $role = $_SESSION['role'] ?? '';
-    if ($role === 'admin')   { header('Location: admin.php');   exit; }
-    if ($role === 'dokter')  { header('Location: dokter.php');  exit; }
-    if ($role === 'perawat') { header('Location: perawat.php'); exit; }
-    if ($role === 'apoteker'){ header('Location: apoteker.php'); exit; }
+    if ($role === 'admin')    { header('Location: admin.php');    exit; }
+    if ($role === 'dokter')   { header('Location: dokter.php');   exit; }
+    if ($role === 'perawat')  { header('Location: perawat.php');  exit; }
+    if ($role === 'apoteker') { header('Location: apoteker.php'); exit; }
+    if ($role === 'direktur') { header('Location: direktur.php'); exit; }
     header('Location: login.php');
     exit;
 }
@@ -36,10 +37,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['username'] = $row['username'];
                 $_SESSION['role'] = $row['role'];
                 $_SESSION['nama_lengkap'] = $row['nama_lengkap'];
-                if ($row['role'] === 'admin')   { header('Location: admin.php');   exit; }
-                if ($row['role'] === 'dokter')  { header('Location: dokter.php');  exit; }
-                if ($row['role'] === 'perawat') { header('Location: perawat.php'); exit; }
-                if ($row['role'] === 'apoteker'){ header('Location: apoteker.php'); exit; }
+                if ($row['role'] === 'admin')    { header('Location: admin.php');    exit; }
+                if ($row['role'] === 'dokter')   { header('Location: dokter.php');   exit; }
+                if ($row['role'] === 'perawat')  { header('Location: perawat.php');  exit; }
+                if ($row['role'] === 'apoteker') { header('Location: apoteker.php'); exit; }
+                if ($row['role'] === 'direktur') { header('Location: direktur.php'); exit; }
                 header('Location: login.php');
                 exit;
             }

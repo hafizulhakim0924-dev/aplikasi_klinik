@@ -24,6 +24,7 @@ if (function_exists('is_logged_in') && is_logged_in() && function_exists('curren
         <?php if ($u['role']==='perawat'): ?><a href="perawat.php">Perawat</a><?php endif; ?>
         <?php if ($u['role']==='dokter'): ?><a href="dokter.php">Dokter</a><?php endif; ?>
         <?php if ($u['role']==='apoteker'): ?><a href="apoteker.php">Apoteker</a><?php endif; ?>
+        <?php if ($u['role']==='direktur'): ?><a href="direktur.php">Direktur</a><?php endif; ?>
         <a href="user.php">Pendaftaran</a>
         <?php if ($is_master): ?>
             <a href="pilih_role_master.php?switch=1" class="btn-switch">Switch</a>

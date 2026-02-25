@@ -21,6 +21,7 @@ $user = current_user();
         <?php if($user['role']==='perawat'): ?><a href="perawat.php">Perawat</a><?php endif; ?>
         <?php if($user['role']==='dokter'): ?><a href="dokter.php">Dokter</a><?php endif; ?>
         <?php if($user['role']==='apoteker'): ?><a href="apoteker.php">Apoteker</a><?php endif; ?>
+        <?php if($user['role']==='direktur'): ?><a href="direktur.php">Direktur</a><?php endif; ?>
         <a href="user.php">Pendaftaran</a>
     <?php else: ?>
         <a href="login.php">Login</a>

@@ -21,7 +21,7 @@ if (empty($_SESSION['master_auth'])) {
 }
 
 $role = $_GET['role'] ?? '';
-$allowed = ['dokter', 'perawat', 'apoteker', 'user'];
+$allowed = ['dokter', 'perawat', 'apoteker', 'direktur', 'user'];
 if (!in_array($role, $allowed)) {
     ?>
     <!DOCTYPE html>
@@ -53,6 +53,7 @@ if (!in_array($role, $allowed)) {
                 <a href="?role=dokter" class="btn-role btn-dokter">Dokter</a>
                 <a href="?role=perawat" class="btn-role btn-perawat">Perawat</a>
                 <a href="?role=apoteker" class="btn-role btn-apoteker">Apoteker</a>
+                <a href="?role=direktur" class="btn-role btn-dokter">Direktur RS</a>
                 <a href="?role=user" class="btn-role btn-user">User (Pendaftaran)</a>
                 <p class="back"><a href="index.php">← Kembali ke login</a></p>
             </div>
@@ -82,5 +83,13 @@ $_SESSION['user_id'] = 999;
 $_SESSION['username'] = 'masterlogin';
 $_SESSION['nama_lengkap'] = 'Master Login';
 $_SESSION['role'] = $role;
-header('Location: ' . ($role === 'dokter' ? 'dokter.php' : 'apoteker.php'));
+if ($role === 'dokter') {
+    header('Location: dokter.php');
+} elseif ($role === 'apoteker') {
+    header('Location: apoteker.php');
+} elseif ($role === 'direktur') {
+    header('Location: direktur.php');
+} else {
+    header('Location: user.php');
+}
 exit;
