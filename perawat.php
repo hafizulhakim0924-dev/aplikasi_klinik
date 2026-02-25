@@ -640,13 +640,13 @@ $tab_rekam_active = (isset($_GET['tab']) && $_GET['tab'] === 'rekam');
                         $kid = preg_replace('/\s+/', '_', trim($k));
                     ?>
                         <div class="kategori-checkbox-item" style="display:flex; flex-direction:column; align-items:flex-start;">
-                            <label style="display:flex; align-items:center; gap:6px; margin-bottom:0;">
+                            <label style="display:flex; align-items:center; gap:6px; margin-bottom:0; cursor:pointer;">
                                 <input type="checkbox" 
                                        name="kategori[]" 
                                        value="<?=h($k)?>" 
                                        id="kat_<?=h($kid)?>"
                                        class="kategori-checkbox"
-                                       data-wrap-id="wrap_ket_<?= h($kid) ?>">
+                                       onchange="var item=this.closest('.kategori-checkbox-item');var w=item?item.querySelector('.wrap-ket-kat'):null;if(w)w.style.display=this.checked?'block':'none';var cbs=document.querySelectorAll('.kategori-checkbox');var sel=[];cbs.forEach(function(c){if(c.checked)sel.push(c.value);});var sd=document.getElementById('selectedCategoriesDisplay');if(sd)sd.innerHTML=sel.length?sel.map(function(x){return'<span class=\"badge\">'+x+'</span>';}).join(''):'<small style=\"color:#666\">Belum ada kategori dipilih</small>';var fs=document.getElementById('fieldSuhu');if(fs)fs.style.display=sel.indexOf('Demam')>=0?'block':'none';">
                                 <span><?=h($k)?></span>
                             </label>
                             <div class="wrap-ket-kat" id="wrap_ket_<?= h($kid) ?>" style="display:none; margin-top:6px; margin-left:22px; width:100%; max-width:320px;">
