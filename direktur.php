@@ -142,7 +142,7 @@ while ($row = $res->fetch_assoc()) {
     $fullflow_rows[] = $row;
 }
 
-// Pasien yang melewati alur perawat → apoteker (tanpa dokter): resep_dari_perawat + pasien.status='selesai'
+// Pasien yang melewati alur perawat → apoteker (tanpa dokter): penanda alur_langsung_apoteker=1 + pasien.status='selesai'
 $res = $db->query("
     SELECT a.id_anak, a.nama AS nama_anak,
            COUNT(*) AS jumlah_kunjungan,
@@ -151,12 +151,21 @@ $res = $db->query("
     JOIN pasien p ON p.id = r.pasien_id
     JOIN anak a ON a.id_anak = r.anak_id
     WHERE r.status_akhir = 'resep_dari_perawat'
+      AND (r.alur_langsung_apoteker = 1 OR r.alur_langsung_apoteker IS NULL)
       AND p.status = 'selesai' $d_sql
     GROUP BY a.id_anak, a.nama
     ORDER BY jumlah_kunjungan DESC, a.nama ASC
 ");
-while ($row = $res->fetch_assoc()) {
-    $fullflow_perawat_rows[] = $row;
+if ($res) {
+    while ($row = $res->fetch_assoc()) { $fullflow_perawat_rows[] = $row; }
+} else {
+    $res2 = $db->query("
+        SELECT a.id_anak, a.nama AS nama_anak, COUNT(*) AS jumlah_kunjungan, MAX(r.created_at) AS terakhir
+        FROM riwayat_kesehatan r JOIN pasien p ON p.id = r.pasien_id JOIN anak a ON a.id_anak = r.anak_id
+        WHERE r.status_akhir = 'resep_dari_perawat' AND p.status = 'selesai' $d_sql
+        GROUP BY a.id_anak, a.nama ORDER BY jumlah_kunjungan DESC, a.nama ASC
+    ");
+    if ($res2) while ($row = $res2->fetch_assoc()) { $fullflow_perawat_rows[] = $row; }
 }
 
 function max_jumlah($rows) {

@@ -343,6 +343,18 @@ if ($rekam_anak) {
     }
 }
 
+// Gabungkan keterangan per kategori jadi satu teks (untuk simpan & dokter_tidak_ada)
+function build_catatan_kategori_from_post() {
+    $catatan_kat = $_POST['catatan_kat'] ?? [];
+    if (!is_array($catatan_kat)) return '';
+    $parts = [];
+    foreach ($catatan_kat as $k => $v) {
+        $v = trim($v ?? '');
+        if ($v !== '') $parts[] = $k . ': ' . $v;
+    }
+    return implode("\n", $parts);
+}
+
 // ========================= SIMPAN ================================
 if(isset($_POST['simpan'])){
     $pasien_id = (int)$_POST['pasien_id'];
@@ -355,7 +367,7 @@ if(isset($_POST['simpan'])){
     $tinggi = ($_POST['tinggi']==''? null : (int)$_POST['tinggi']);
     $berat = ($_POST['berat']==''? null : (float)$_POST['berat']);
     $cat = trim($_POST['catatan_perawat']);
-    $catatan_kategori = trim($_POST['catatan_kategori'] ?? '');
+    $catatan_kategori = build_catatan_kategori_from_post();
     $resep_perawat = trim($_POST['resep_perawat']);
     $nama_perawat = $_SESSION['perawat_nama'];
     $suhu_demam = ($_POST['suhu_demam']==''? null : (float)$_POST['suhu_demam']);
@@ -364,7 +376,7 @@ if(isset($_POST['simpan'])){
         UPDATE riwayat_kesehatan 
         SET kategori=?, td=?, tinggi_cm=?, berat_kg=?, 
             catatan_perawat=?, catatan_kategori=?, resep_perawat=?, suhu_demam=?, 
-            status_akhir='perawat_selesai', 
+            status_akhir='perawat_selesai', alur_langsung_apoteker=0,
             updated_at=NOW(), nama_perawat=?
         WHERE pasien_id=? LIMIT 1
     ");
@@ -407,7 +419,7 @@ if(isset($_POST['dokter_tidak_ada'])){
     $tinggi = ($_POST['tinggi']==''? null : (int)$_POST['tinggi']);
     $berat = ($_POST['berat']==''? null : (float)$_POST['berat']);
     $cat = trim($_POST['catatan_perawat']);
-    $catatan_kategori = trim($_POST['catatan_kategori'] ?? '');
+    $catatan_kategori = build_catatan_kategori_from_post();
     $resep_perawat = trim($_POST['resep_perawat']);
     $nama_perawat = $_SESSION['perawat_nama'];
     $suhu_demam = ($_POST['suhu_demam']==''? null : (float)$_POST['suhu_demam']);
@@ -415,7 +427,7 @@ if(isset($_POST['dokter_tidak_ada'])){
     $upd = $db->prepare("
         UPDATE riwayat_kesehatan 
         SET kategori=?, td=?, tinggi_cm=?, berat_kg=?, catatan_perawat=?, catatan_kategori=?,
-            resep_perawat=?, suhu_demam=?, status_akhir='resep_dari_perawat', 
+            resep_perawat=?, suhu_demam=?, status_akhir='resep_dari_perawat', alur_langsung_apoteker=1,
             updated_at=NOW(), nama_perawat=?
         WHERE pasien_id=? LIMIT 1
     ");
@@ -637,8 +649,15 @@ $tab_rekam_active = (isset($_GET['tab']) && $_GET['tab'] === 'rekam');
                 </div>
 
                 <div id="fieldKeteranganKategori">
-                    <label><b>📝 Keterangan untuk kategori yang dipilih:</b></label>
-                    <textarea name="catatan_kategori" rows="2" placeholder="Misal: Demam - suhu 38°C, menggigil; Batuk - batuk kering"></textarea>
+                    <p style="margin:0 0 6px 0;"><b>📝 Keterangan per kategori (isi jika perlu):</b></p>
+                    <?php foreach($kategori as $k): 
+                        $kid = str_replace(' ', '_', $k);
+                    ?>
+                    <div class="wrap-ket-kat" id="wrap_ket_<?= h($kid) ?>" style="display:none; margin-bottom:6px;">
+                        <label style="font-size:12px;">Keterangan untuk <strong><?= h($k) ?></strong>:</label>
+                        <textarea name="catatan_kat[<?= h($k) ?>]" rows="2" placeholder="Contoh: suhu 38°C, menggigil" style="width:100%; margin-top:2px;"></textarea>
+                    </div>
+                    <?php endforeach; ?>
                 </div>
 
                 <div id="fieldSuhu">
@@ -909,6 +928,16 @@ function updateSelectedDisplay() {
             .map(cat => `<span class="badge">${cat}</span>`)
             .join('');
         if(fieldKeterangan) fieldKeterangan.style.display = 'block';
+        selected.forEach(function(cat){
+            var wrap = document.getElementById('wrap_ket_' + cat.replace(/\s/g, '_'));
+            if(wrap) wrap.style.display = 'block';
+        });
+        checkboxes.forEach(function(cb){
+            if(!cb.checked){
+                var wrap = document.getElementById('wrap_ket_' + cb.value.replace(/\s/g, '_'));
+                if(wrap) wrap.style.display = 'none';
+            }
+        });
         if(selected.includes('Demam')) {
             if(fieldSuhu) fieldSuhu.style.display = 'block';
         } else {
