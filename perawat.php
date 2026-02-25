@@ -636,26 +636,29 @@ $tab_rekam_active = (isset($_GET['tab']) && $_GET['tab'] === 'rekam');
                     <small style="color:#666;">Belum ada kategori dipilih</small>
                 </div>
                 <div class="kategori-checkbox-container">
-                    <?php foreach($kategori as $k): ?>
+                    <?php foreach($kategori as $k): 
+                        $kid = preg_replace('/\s+/', '_', trim($k));
+                    ?>
                         <div class="kategori-checkbox-item">
                             <input type="checkbox" 
                                    name="kategori[]" 
                                    value="<?=h($k)?>" 
-                                   id="kat_<?=h($k)?>"
-                                   class="kategori-checkbox">
-                            <label for="kat_<?=h($k)?>"><?=h($k)?></label>
+                                   id="kat_<?=h($kid)?>"
+                                   class="kategori-checkbox"
+                                   data-wrap-id="wrap_ket_<?= h($kid) ?>">
+                            <label for="kat_<?=h($kid)?>"><?=h($k)?></label>
                         </div>
                     <?php endforeach; ?>
                 </div>
 
-                <div id="fieldKeteranganKategori">
-                    <p style="margin:0 0 6px 0;"><b>📝 Keterangan per kategori (isi jika perlu):</b></p>
+                <div id="fieldKeteranganKategori" style="display:none;">
+                    <p style="margin:0 0 8px 0;"><b>📝 Keterangan / catatan per kategori (isi jika perlu):</b></p>
                     <?php foreach($kategori as $k): 
-                        $kid = str_replace(' ', '_', $k);
+                        $kid = preg_replace('/\s+/', '_', trim($k));
                     ?>
-                    <div class="wrap-ket-kat" id="wrap_ket_<?= h($kid) ?>" style="display:none; margin-bottom:6px;">
-                        <label style="font-size:12px;">Keterangan untuk <strong><?= h($k) ?></strong>:</label>
-                        <textarea name="catatan_kat[<?= h($k) ?>]" rows="2" placeholder="Contoh: suhu 38°C, menggigil" style="width:100%; margin-top:2px;"></textarea>
+                    <div class="wrap-ket-kat" id="wrap_ket_<?= h($kid) ?>" style="display:none; margin-bottom:10px; padding:8px; background:#f8fafc; border-radius:6px; border:1px solid var(--c-border);">
+                        <label style="font-size:12px; display:block; margin-bottom:4px;">Keterangan untuk <strong><?= h($k) ?></strong>:</label>
+                        <textarea name="catatan_kat[<?= h($k) ?>]" rows="2" placeholder="Contoh: suhu 38°C, menggigil" style="width:100%; padding:6px; box-sizing:border-box;"></textarea>
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -923,20 +926,20 @@ function updateSelectedDisplay() {
         displayArea.innerHTML = '<small style="color:#666;">Belum ada kategori dipilih</small>';
         if(fieldSuhu) fieldSuhu.style.display = 'none';
         if(fieldKeterangan) fieldKeterangan.style.display = 'none';
+        checkboxes.forEach(function(cb){
+            var wrapId = cb.getAttribute('data-wrap-id');
+            if(wrapId) { var w = document.getElementById(wrapId); if(w) w.style.display = 'none'; }
+        });
     } else {
         displayArea.innerHTML = selected
             .map(cat => `<span class="badge">${cat}</span>`)
             .join('');
         if(fieldKeterangan) fieldKeterangan.style.display = 'block';
-        selected.forEach(function(cat){
-            var wrap = document.getElementById('wrap_ket_' + cat.replace(/\s/g, '_'));
-            if(wrap) wrap.style.display = 'block';
-        });
         checkboxes.forEach(function(cb){
-            if(!cb.checked){
-                var wrap = document.getElementById('wrap_ket_' + cb.value.replace(/\s/g, '_'));
-                if(wrap) wrap.style.display = 'none';
-            }
+            var wrapId = cb.getAttribute('data-wrap-id');
+            if(!wrapId) return;
+            var wrap = document.getElementById(wrapId);
+            if(wrap) wrap.style.display = cb.checked ? 'block' : 'none';
         });
         if(selected.includes('Demam')) {
             if(fieldSuhu) fieldSuhu.style.display = 'block';
