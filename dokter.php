@@ -269,11 +269,11 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['simpan_dokter'])){
         <div class="checklist-item">
             <strong>Status Menyusui:</strong><br>
             <label>
-                <input type="radio" name="status_menyusui" value="menyusui" required>
+                <input type="radio" name="status_menyusui" value="menyusui">
                 Menyusui
             </label>
             <label style="margin-left: 15px;">
-                <input type="radio" name="status_menyusui" value="tidak_menyusui">
+                <input type="radio" name="status_menyusui" value="tidak_menyusui" checked>
                 Tidak Menyusui
             </label>
         </div>
@@ -281,11 +281,11 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['simpan_dokter'])){
         <div class="checklist-item">
             <strong>Status Alergi:</strong><br>
             <label>
-                <input type="radio" name="status_alergi" value="alergi" required>
+                <input type="radio" name="status_alergi" value="alergi">
                 Ada Alergi
             </label>
             <label style="margin-left: 15px;">
-                <input type="radio" name="status_alergi" value="tidak_alergi">
+                <input type="radio" name="status_alergi" value="tidak_alergi" checked>
                 Tidak Ada Alergi
             </label>
         </div>
@@ -293,11 +293,11 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['simpan_dokter'])){
         <div class="checklist-item">
             <strong>Status Kehamilan:</strong><br>
             <label>
-                <input type="radio" name="status_hamil" value="hamil" required>
+                <input type="radio" name="status_hamil" value="hamil">
                 Hamil
             </label>
             <label style="margin-left: 15px;">
-                <input type="radio" name="status_hamil" value="tidak_hamil">
+                <input type="radio" name="status_hamil" value="tidak_hamil" checked>
                 Tidak Hamil
             </label>
         </div>
