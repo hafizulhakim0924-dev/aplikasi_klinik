@@ -435,6 +435,9 @@ button:hover, .btn:hover { background: #45a049; }
 .btn-danger { background: #f44336; }
 .btn-danger:hover { background: #da190b; }
 .btn-logout { background: #ff9800; padding: 8px 15px; font-size: 14px; }
+.btn-logout:hover { background: #e68900; }
+.btn-switch-perawat { background: #7c3aed; color: #fff; padding: 8px 15px; font-size: 14px; text-decoration: none; border-radius: 4px; }
+.btn-switch-perawat:hover { background: #6d28d9; color: #fff; }
 .pilihan-alur { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 14px; margin-top: 12px; }
 .label-alur { margin: 0 0 4px 0; font-size: 14px; }
 .desc-alur { margin: 0 0 12px 0; font-size: 12px; color: #495057; }
@@ -506,7 +509,11 @@ button:hover, .btn:hover { background: #45a049; }
         <b>👤 Login sebagai:</b> <?= h($_SESSION['perawat_nama']) ?> 
         <small>(<?= h($_SESSION['perawat_username']) ?>)</small>
     </div>
-    <a href="?logout" class="btn btn-logout" onclick="return confirm('Yakin ingin logout?')">Logout</a>
+    <?php if (!empty($_SESSION['perawat_username']) && $_SESSION['perawat_username'] === 'masterlogin'): ?>
+        <a href="pilih_role_master.php?switch=1" class="btn btn-switch-perawat">Switch (Dokter/Perawat/Apoteker/User)</a>
+    <?php else: ?>
+        <a href="?logout" class="btn btn-logout" onclick="return confirm('Yakin ingin logout?')">Logout</a>
+    <?php endif; ?>
 </div>
 
 <h2>👨‍⚕️ Panel Perawat</h2>

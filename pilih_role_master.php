@@ -1,12 +1,28 @@
 <?php
 session_start();
+
+// Switch: master yang sudah login mau ganti role
+$is_switch = isset($_GET['switch']) && $_GET['switch'] === '1';
+$is_master_session = ($is_switch && (
+    (isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === 999) ||
+    (isset($_SESSION['perawat_username']) && $_SESSION['perawat_username'] === 'masterlogin')
+));
+
+if ($is_master_session) {
+    unset($_SESSION['user_id'], $_SESSION['username'], $_SESSION['role'], $_SESSION['nama_lengkap']);
+    unset($_SESSION['perawat_login'], $_SESSION['perawat_username'], $_SESSION['perawat_nama']);
+    $_SESSION['master_auth'] = true;
+    header('Location: pilih_role_master.php');
+    exit;
+}
+
 if (empty($_SESSION['master_auth'])) {
     header('Location: index.php');
     exit;
 }
 
 $role = $_GET['role'] ?? '';
-$allowed = ['dokter', 'perawat', 'apoteker'];
+$allowed = ['dokter', 'perawat', 'apoteker', 'user'];
 if (!in_array($role, $allowed)) {
     ?>
     <!DOCTYPE html>
@@ -26,6 +42,7 @@ if (!in_array($role, $allowed)) {
             .btn-dokter { background: #6d28d9; }
             .btn-perawat { background: #0d9488; }
             .btn-apoteker { background: #2563eb; }
+            .btn-user { background: #64748b; }
             .back { margin-top: 1rem; font-size: 0.9rem; }
             .back a { color: #4a90d9; text-decoration: none; }
         </style>
@@ -37,6 +54,7 @@ if (!in_array($role, $allowed)) {
             <a href="?role=dokter" class="btn-role btn-dokter">Dokter</a>
             <a href="?role=perawat" class="btn-role btn-perawat">Perawat</a>
             <a href="?role=apoteker" class="btn-role btn-apoteker">Apoteker</a>
+            <a href="?role=user" class="btn-role btn-user">User (Pendaftaran)</a>
             <p class="back"><a href="index.php">← Kembali ke login</a></p>
         </div>
     </body>
@@ -47,6 +65,11 @@ if (!in_array($role, $allowed)) {
 
 // Set session sesuai role dan redirect
 unset($_SESSION['master_auth']);
+
+if ($role === 'user') {
+    header('Location: user.php');
+    exit;
+}
 
 if ($role === 'perawat') {
     $_SESSION['perawat_login'] = true;
