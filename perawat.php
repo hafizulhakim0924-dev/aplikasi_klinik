@@ -646,7 +646,7 @@ $tab_rekam_active = (isset($_GET['tab']) && $_GET['tab'] === 'rekam');
                                        value="<?=h($k)?>" 
                                        id="kat_<?=h($kid)?>"
                                        class="kategori-checkbox"
-                                       onchange="var item=this.closest('.kategori-checkbox-item');var w=item?item.querySelector('.wrap-ket-kat'):null;if(w)w.style.display=this.checked?'block':'none';var cbs=document.querySelectorAll('.kategori-checkbox');var sel=[];cbs.forEach(function(c){if(c.checked)sel.push(c.value);});var sd=document.getElementById('selectedCategoriesDisplay');if(sd)sd.innerHTML=sel.length?sel.map(function(x){return'<span class=\"badge\">'+x+'</span>';}).join(''):'<small style=\"color:#666\">Belum ada kategori dipilih</small>';var fs=document.getElementById('fieldSuhu');if(fs)fs.style.display=sel.indexOf('Demam')>=0?'block':'none';">
+                                       onchange="toggleKeteranganKategori(this)">
                                 <span><?=h($k)?></span>
                             </label>
                             <div class="wrap-ket-kat" id="wrap_ket_<?= h($kid) ?>" style="display:none; margin-top:6px; margin-left:22px; width:100%; max-width:320px;">
@@ -903,41 +903,41 @@ document.querySelectorAll('.perawat-tab').forEach(function(btn){
 </script>
 
 <script>
-// ===================================================
-// MULTIPLE KATEGORI CHECKBOX HANDLER
-// ===================================================
+// Toggle field keterangan di bawah kategori (dipanggil dari onchange inline)
+function toggleKeteranganKategori(cb) {
+    var item = cb.closest('.kategori-checkbox-item');
+    var w = item ? item.querySelector('.wrap-ket-kat') : null;
+    if (w) w.style.display = cb.checked ? 'block' : 'none';
+    var cbs = document.querySelectorAll('.kategori-checkbox');
+    var sel = [];
+    for (var i = 0; i < cbs.length; i++) { if (cbs[i].checked) sel.push(cbs[i].value); }
+    var sd = document.getElementById('selectedCategoriesDisplay');
+    if (sd) sd.innerHTML = sel.length ? sel.map(function(x) { return '<span class="badge">' + x + '</span>'; }).join('') : '<small style="color:#666">Belum ada kategori dipilih</small>';
+    var fs = document.getElementById('fieldSuhu');
+    if (fs) fs.style.display = sel.indexOf('Demam') >= 0 ? 'block' : 'none';
+}
+</script>
+<script>
+// Inisialisasi tampilan kategori saat halaman load (untuk badge & field suhu)
 (function(){
+    var container = document.querySelector('.kategori-checkbox-container');
+    if (!container) return;
+    var checkboxes = container.querySelectorAll('.kategori-checkbox');
     var displayArea = document.getElementById('selectedCategoriesDisplay');
     var fieldSuhu = document.getElementById('fieldSuhu');
-    var container = document.querySelector('.kategori-checkbox-container');
-    if(!container) return;
-
-    function updateSelectedDisplay() {
-        var checkboxes = container.querySelectorAll('.kategori-checkbox');
-        var selected = Array.from(checkboxes).filter(function(cb){ return cb.checked; }).map(function(cb){ return cb.value; });
-
-        if(displayArea) {
-            if(selected.length === 0) {
-                displayArea.innerHTML = '<small style="color:#666;">Belum ada kategori dipilih</small>';
-            } else {
-                displayArea.innerHTML = selected.map(function(cat){ return '<span class="badge">' + cat + '</span>'; }).join('');
-            }
+    function syncDisplay() {
+        var sel = [];
+        for (var i = 0; i < checkboxes.length; i++) { if (checkboxes[i].checked) sel.push(checkboxes[i].value); }
+        if (displayArea) displayArea.innerHTML = sel.length ? sel.map(function(x){ return '<span class="badge">'+x+'</span>'; }).join('') : '<small style="color:#666">Belum ada kategori dipilih</small>';
+        if (fieldSuhu) fieldSuhu.style.display = sel.indexOf('Demam') >= 0 ? 'block' : 'none';
+        for (var j = 0; j < checkboxes.length; j++) {
+            var item = checkboxes[j].closest('.kategori-checkbox-item');
+            var wrap = item ? item.querySelector('.wrap-ket-kat') : null;
+            if (wrap) wrap.style.display = checkboxes[j].checked ? 'block' : 'none';
         }
-        if(fieldSuhu) {
-            fieldSuhu.style.display = selected.indexOf('Demam') >= 0 ? 'block' : 'none';
-        }
-        checkboxes.forEach(function(cb){
-            var item = cb.closest('.kategori-checkbox-item');
-            if(!item) return;
-            var wrap = item.querySelector('.wrap-ket-kat');
-            if(wrap) wrap.style.display = cb.checked ? 'block' : 'none';
-        });
     }
-
-    container.addEventListener('change', function(e){
-        if(e.target && e.target.classList.contains('kategori-checkbox')) updateSelectedDisplay();
-    });
-    updateSelectedDisplay();
+    container.addEventListener('change', function(e) { if (e.target && e.target.classList.contains('kategori-checkbox')) syncDisplay(); });
+    syncDisplay();
 })();
 
 // ===================================================
