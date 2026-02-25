@@ -466,7 +466,6 @@ button, .btn { padding: 6px 12px; font-size: 12px; }
 .desc-alur { margin: 0 0 8px 0; font-size: 11px; color: var(--c-muted); }
 .wrap-btn-alur { display: flex; flex-wrap: wrap; gap: 8px; }
 #fieldSuhu { display: none; background: #fffbeb; padding: 8px; margin: 8px 0; border-left: 3px solid #f59e0b; font-size: 12px; }
-#fieldKeteranganKategori { display: none; background: #f0fdfa; padding: 8px; margin: 8px 0; border-left: 3px solid var(--c-primary); }
 .perawat-tab { padding: 5px 12px; margin-right: 4px; cursor: pointer; font-size: 12px; border: 1px solid var(--c-border); background: #fff; border-radius: 4px; }
 .perawat-tab.active { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
 .perawat-tabContent { display: none; }
@@ -639,27 +638,21 @@ $tab_rekam_active = (isset($_GET['tab']) && $_GET['tab'] === 'rekam');
                     <?php foreach($kategori as $k): 
                         $kid = preg_replace('/\s+/', '_', trim($k));
                     ?>
-                        <div class="kategori-checkbox-item">
-                            <input type="checkbox" 
-                                   name="kategori[]" 
-                                   value="<?=h($k)?>" 
-                                   id="kat_<?=h($kid)?>"
-                                   class="kategori-checkbox"
-                                   data-wrap-id="wrap_ket_<?= h($kid) ?>">
-                            <label for="kat_<?=h($kid)?>"><?=h($k)?></label>
+                        <div class="kategori-checkbox-item" style="display:flex; flex-direction:column; align-items:flex-start;">
+                            <label style="display:flex; align-items:center; gap:6px; margin-bottom:0;">
+                                <input type="checkbox" 
+                                       name="kategori[]" 
+                                       value="<?=h($k)?>" 
+                                       id="kat_<?=h($kid)?>"
+                                       class="kategori-checkbox"
+                                       data-wrap-id="wrap_ket_<?= h($kid) ?>">
+                                <span><?=h($k)?></span>
+                            </label>
+                            <div class="wrap-ket-kat" id="wrap_ket_<?= h($kid) ?>" style="display:none; margin-top:6px; margin-left:22px; width:100%; max-width:320px;">
+                                <label style="font-size:11px; color:#64748b; display:block; margin-bottom:2px;">Keterangan untuk <?= h($k) ?>:</label>
+                                <textarea name="catatan_kat[<?= h($k) ?>]" rows="2" placeholder="Contoh: suhu 38°C, menggigil" style="width:100%; padding:6px; font-size:12px; box-sizing:border-box; border:1px solid var(--c-border); border-radius:4px;"></textarea>
+                            </div>
                         </div>
-                    <?php endforeach; ?>
-                </div>
-
-                <div id="fieldKeteranganKategori" style="display:none;">
-                    <p style="margin:0 0 8px 0;"><b>📝 Keterangan / catatan per kategori (isi jika perlu):</b></p>
-                    <?php foreach($kategori as $k): 
-                        $kid = preg_replace('/\s+/', '_', trim($k));
-                    ?>
-                    <div class="wrap-ket-kat" id="wrap_ket_<?= h($kid) ?>" style="display:none; margin-bottom:10px; padding:8px; background:#f8fafc; border-radius:6px; border:1px solid var(--c-border);">
-                        <label style="font-size:12px; display:block; margin-bottom:4px;">Keterangan untuk <strong><?= h($k) ?></strong>:</label>
-                        <textarea name="catatan_kat[<?= h($k) ?>]" rows="2" placeholder="Contoh: suhu 38°C, menggigil" style="width:100%; padding:6px; box-sizing:border-box;"></textarea>
-                    </div>
                     <?php endforeach; ?>
                 </div>
 
@@ -915,7 +908,6 @@ document.querySelectorAll('.perawat-tab').forEach(function(btn){
 const checkboxes = document.querySelectorAll('.kategori-checkbox');
 const displayArea = document.getElementById('selectedCategoriesDisplay');
 const fieldSuhu = document.getElementById('fieldSuhu');
-const fieldKeterangan = document.getElementById('fieldKeteranganKategori');
 
 function updateSelectedDisplay() {
     const selected = Array.from(checkboxes)
@@ -925,28 +917,22 @@ function updateSelectedDisplay() {
     if(selected.length === 0) {
         displayArea.innerHTML = '<small style="color:#666;">Belum ada kategori dipilih</small>';
         if(fieldSuhu) fieldSuhu.style.display = 'none';
-        if(fieldKeterangan) fieldKeterangan.style.display = 'none';
-        checkboxes.forEach(function(cb){
-            var wrapId = cb.getAttribute('data-wrap-id');
-            if(wrapId) { var w = document.getElementById(wrapId); if(w) w.style.display = 'none'; }
-        });
     } else {
         displayArea.innerHTML = selected
             .map(cat => `<span class="badge">${cat}</span>`)
             .join('');
-        if(fieldKeterangan) fieldKeterangan.style.display = 'block';
-        checkboxes.forEach(function(cb){
-            var wrapId = cb.getAttribute('data-wrap-id');
-            if(!wrapId) return;
-            var wrap = document.getElementById(wrapId);
-            if(wrap) wrap.style.display = cb.checked ? 'block' : 'none';
-        });
         if(selected.includes('Demam')) {
             if(fieldSuhu) fieldSuhu.style.display = 'block';
         } else {
             if(fieldSuhu) fieldSuhu.style.display = 'none';
         }
     }
+    checkboxes.forEach(function(cb){
+        var wrapId = cb.getAttribute('data-wrap-id');
+        if(!wrapId) return;
+        var wrap = document.getElementById(wrapId);
+        if(wrap) wrap.style.display = cb.checked ? 'block' : 'none';
+    });
 }
 
 // Attach event listener ke semua checkbox
