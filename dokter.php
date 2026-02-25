@@ -196,6 +196,11 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['simpan_dokter'])){
             <?= nl2br(htmlspecialchars($perawat_data['catatan_perawat'])) ?><br><br>
         <?php endif; ?>
 
+        <?php if(!empty($perawat_data['catatan_kategori'])): ?>
+            <b>Keterangan Kategori (dari Perawat):</b><br>
+            <?= nl2br(htmlspecialchars($perawat_data['catatan_kategori'])) ?><br><br>
+        <?php endif; ?>
+
         <?php if(!empty($perawat_data['resep_perawat'])): ?>
             <b>Resep Perawat:</b><br>
             <?= nl2br(htmlspecialchars($perawat_data['resep_perawat'])) ?><br><br>
