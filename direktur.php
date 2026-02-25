@@ -124,7 +124,7 @@ $res = $db->query("
 ");
 $kat_dokter = agregasi_kategori_by_comma($res);
 
-// Pasien yang melewati alur penuh perawat → dokter → apoteker (status_akhir dokter_selesai)
+// Pasien yang melewati alur penuh perawat → dokter → apoteker (dokter_selesai + pasien.status='selesai')
 $res = $db->query("
     SELECT a.id_anak, a.nama AS nama_anak,
            COUNT(*) AS jumlah_kunjungan,
@@ -132,7 +132,8 @@ $res = $db->query("
     FROM riwayat_kesehatan r
     JOIN pasien p ON p.id = r.pasien_id
     JOIN anak a ON a.id_anak = r.anak_id
-    WHERE r.status_akhir = 'dokter_selesai' $d_sql
+    WHERE r.status_akhir = 'dokter_selesai'
+      AND p.status = 'selesai' $d_sql
     GROUP BY a.id_anak, a.nama
     ORDER BY jumlah_kunjungan DESC, a.nama ASC
 ");
