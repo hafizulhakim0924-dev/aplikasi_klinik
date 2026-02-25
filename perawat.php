@@ -464,7 +464,7 @@ button, .btn { padding: 6px 12px; font-size: 12px; }
 .record-box { border: 1px solid var(--c-border); padding: 8px 10px; margin-bottom: 6px; border-radius: 4px; background: #f8fafc; cursor: pointer; }
 .record-detail { display: none; background: #fff; border: 1px solid var(--c-border); padding: 10px; border-radius: 4px; margin-top: 6px; font-size: 12px; }
 .perawat-modal-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.55); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 200; }
-.perawat-modal { background: #ffffff; width: 100%; max-width: 1200px; border-radius: 10px; box-shadow: 0 24px 48px rgba(15,23,42,0.35); padding: 20px 24px 24px; }
+.perawat-modal { background: #ffffff; width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto; border-radius: 10px; box-shadow: 0 24px 48px rgba(15,23,42,0.35); padding: 20px 24px 24px; }
 .perawat-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .perawat-modal-title { font-size: 18px; font-weight: 600; }
 .perawat-modal-close { border: none; background: transparent; font-size: 20px; cursor: pointer; line-height: 1; padding: 4px 8px; border-radius: 999px; }
@@ -476,8 +476,8 @@ button, .btn { padding: 6px 12px; font-size: 12px; }
 .perawat-suggest-item { padding: 8px 10px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
 .perawat-suggest-item:hover { background: #f0fdfa; }
 .perawat-suggest-item:last-child { border-bottom: none; }
-.kategori-checkbox-container { border: 1px solid var(--c-border); padding: 8px; background: #fafafa; border-radius: 4px; display:flex; flex-wrap:wrap; gap:4px 12px; }
-.kategori-checkbox-item { padding: 3px 0; min-width: 45%; }
+.kategori-checkbox-container { border: 1px solid var(--c-border); padding: 8px; background: #fafafa; border-radius: 4px; display: flex; flex-direction: column; flex-wrap: wrap; max-height: 90px; gap: 2px 14px; align-content: flex-start; }
+.kategori-checkbox-item { padding: 2px 0; white-space: nowrap; }
 .kategori-checkbox-item input { width: auto; margin-right: 6px; }
 .selected-categories { padding: 6px; margin: 4px 0; border-radius: 4px; min-height: 18px; font-size: 11px; background: #f0fdfa; }
 .selected-categories .badge { display: inline-block; background: var(--c-primary); color: #fff; padding: 2px 6px; margin: 1px; border-radius: 10px; font-size: 11px; }
@@ -608,7 +608,8 @@ $tab_rekam_active = (isset($_GET['tab']) && $_GET['tab'] === 'rekam');
 
         <div class="perawat-modal-tabs" style="margin-bottom:10px; border-bottom:1px solid #e2e8f0;">
             <button type="button" class="perawat-modal-tab active" data-tab="modalForm">Form Pemeriksaan</button>
-            <button type="button" class="perawat-modal-tab" data-tab="modalRiwayat">Riwayat & Grafik</button>
+            <button type="button" class="perawat-modal-tab" data-tab="modalRiwayat">Riwayat</button>
+            <button type="button" class="perawat-modal-tab" data-tab="modalGrafik">Grafik</button>
         </div>
 
         <div id="modalForm" class="perawat-modal-tabContent active">
@@ -692,32 +693,6 @@ $tab_rekam_active = (isset($_GET['tab']) && $_GET['tab'] === 'rekam');
         </div>
 
         <div id="modalRiwayat" class="perawat-modal-tabContent" style="display:none;">
-            <h4>📊 Grafik Batang Riwayat Kategori</h4>
-            <?php
-            $modal_max_j = 0;
-            foreach ($modal_grafik_kat as $gk) { if ($gk['jumlah'] > $modal_max_j) $modal_max_j = (int)$gk['jumlah']; }
-            ?>
-            <?php if (empty($modal_grafik_kat)): ?>
-                <p class="muted">Belum ada data kategori untuk grafik.</p>
-            <?php else: ?>
-                <table style="width:100%; max-width:600px; margin-bottom:16px;">
-                    <tr><th>Kategori</th><th>Jumlah</th><th>Grafik</th></tr>
-                    <?php foreach ($modal_grafik_kat as $gk):
-                        $pct = $modal_max_j > 0 ? round(($gk['jumlah'] / $modal_max_j) * 100) : 0;
-                    ?>
-                    <tr>
-                        <td><?= h($gk['kategori']) ?></td>
-                        <td><?= $gk['jumlah'] ?>x</td>
-                        <td style="width:220px;">
-                            <div class="grafik-bar-wrap" style="height:18px;">
-                                <div class="grafik-bar" style="width:<?= $pct ?>%;"></div>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </table>
-            <?php endif; ?>
-
             <h4>📖 Riwayat Kesehatan Anak</h4>
             <div id="riwayatContainer" style="margin-top:6px;">
                 <?php
@@ -736,6 +711,34 @@ $tab_rekam_active = (isset($_GET['tab']) && $_GET['tab'] === 'rekam');
                 }
                 ?>
             </div>
+        </div>
+
+        <div id="modalGrafik" class="perawat-modal-tabContent" style="display:none;">
+            <h4>📊 Grafik Batang Riwayat Kategori</h4>
+            <?php
+            $modal_max_j = 0;
+            foreach ($modal_grafik_kat as $gk) { if ($gk['jumlah'] > $modal_max_j) $modal_max_j = (int)$gk['jumlah']; }
+            ?>
+            <?php if (empty($modal_grafik_kat)): ?>
+                <p class="muted">Belum ada data kategori untuk grafik.</p>
+            <?php else: ?>
+                <table style="width:100%; max-width:500px; margin-top:8px;">
+                    <tr><th>Kategori</th><th>Jumlah</th><th>Grafik</th></tr>
+                    <?php foreach ($modal_grafik_kat as $gk):
+                        $pct = $modal_max_j > 0 ? round(($gk['jumlah'] / $modal_max_j) * 100) : 0;
+                    ?>
+                    <tr>
+                        <td><?= h($gk['kategori']) ?></td>
+                        <td><?= $gk['jumlah'] ?>x</td>
+                        <td style="width:180px;">
+                            <div class="grafik-bar-wrap" style="height:18px;">
+                                <div class="grafik-bar" style="width:<?= $pct ?>%;"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </table>
+            <?php endif; ?>
         </div>
     </div>
 </div>
