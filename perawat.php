@@ -86,6 +86,15 @@ include 'header_user.php';
 function h($s){ return htmlspecialchars($s); }
 function safe_display($v){ return ($v===''||$v===null) ? '-' : nl2br(h($v)); }
 
+// ========================== BATALKAN ANTRIAN ======================
+if (isset($_GET['batal'])) {
+    $idp = (int)$_GET['batal'];
+    // Hanya boleh batalkan antrian yang masih menunggu
+    $db->query("UPDATE pasien SET status='batal' WHERE id=$idp AND status='menunggu'");
+    header("Location: perawat.php?ok_batal=1");
+    exit;
+}
+
 // ========================== AJAX HANDLERS =========================
 if(isset($_GET['ajax'])){
 
@@ -100,13 +109,14 @@ if(isset($_GET['ajax'])){
         ");
 
         if($list->num_rows == 0){
-            echo '<tr><td colspan="3" align="center">Tidak ada antrian</td></tr>';
+            echo '<tr><td colspan="4" align="center">Tidak ada antrian</td></tr>';
         } else {
             while($p = $list->fetch_assoc()){
                 echo '<tr>
                     <td align="center"><b>'.$p['nomor_antrian'].'</b></td>
                     <td>'.h($p['nama_anak']).'</td>
                     <td><a href="perawat.php?proses='.$p['id'].'">Proses</a></td>
+                    <td><a href="perawat.php?batal='.$p['id'].'" onclick="return confirm(\'Batalkan antrian ini?\')">Batalkan</a></td>
                 </tr>';
             }
         }
@@ -518,6 +528,10 @@ textarea { min-height: 50px; }
 <div class="alert alert-info">✓ Resep berhasil dikirim ke apotek</div>
 <?php endif; ?>
 
+<?php if(isset($_GET['ok_batal'])): ?>
+<div class="alert alert-warning">⚠ Antrian pasien dibatalkan.</div>
+<?php endif; ?>
+
 <?php if(isset($_GET['ok_daftar'])): ?>
 <div class="alert alert-success">✓ Pasien berhasil didaftarkan. No. Antrian: <strong><?= (int)($_GET['antrian'] ?? '') ?></strong></div>
 <?php endif; ?>
@@ -579,19 +593,20 @@ $tab_rekam_active = (isset($_GET['tab']) && $_GET['tab'] === 'rekam');
                     <tr>
                         <th>No</th>
                         <th>Nama</th>
-                        <th>Aksi</th>
+                        <th colspan="2">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="antrianBox">
                     <?php
                     if($list->num_rows==0){
-                        echo '<tr><td colspan="3" align="center">Tidak ada antrian</td></tr>';
+                        echo '<tr><td colspan="4" align="center">Tidak ada antrian</td></tr>';
                     }else{
                         while($p=$list->fetch_assoc()){
                             echo '<tr>
                                 <td align="center"><b>'.$p['nomor_antrian'].'</b></td>
                                 <td>'.h($p['nama_anak']).'</td>
                                 <td><a href="perawat.php?proses='.$p['id'].'" class="btn">Proses</a></td>
+                                <td><a href="perawat.php?batal='.$p['id'].'" class="btn btn-danger" onclick="return confirm(\'Batalkan antrian ini?\')">Batalkan</a></td>
                             </tr>';
                         }
                     }
