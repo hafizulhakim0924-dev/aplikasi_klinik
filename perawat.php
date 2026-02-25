@@ -450,6 +450,12 @@ button, .btn { padding: 6px 12px; font-size: 12px; }
 .grafik-bar-wrap { background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
 .record-box { border: 1px solid var(--c-border); padding: 8px 10px; margin-bottom: 6px; border-radius: 4px; background: #f8fafc; cursor: pointer; }
 .record-detail { display: none; background: #fff; border: 1px solid var(--c-border); padding: 10px; border-radius: 4px; margin-top: 6px; font-size: 12px; }
+.perawat-modal-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.55); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; z-index: 200; }
+.perawat-modal { background: #ffffff; width: 100%; max-width: 960px; max-height: calc(100vh - 80px); overflow-y: auto; border-radius: 10px; box-shadow: 0 24px 48px rgba(15,23,42,0.35); padding: 20px 24px 24px; }
+.perawat-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.perawat-modal-title { font-size: 18px; font-weight: 600; }
+.perawat-modal-close { border: none; background: transparent; font-size: 20px; cursor: pointer; line-height: 1; padding: 4px 8px; border-radius: 999px; }
+.perawat-modal-close:hover { background: #e2e8f0; }
 .perawat-suggest-dropdown { position: absolute; left: 0; top: 100%; width: 100%; max-width: 280px; max-height: 220px; overflow-y: auto; background: #fff; border: 1px solid var(--c-border); border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100; margin-top: 2px; }
 .perawat-suggest-item { padding: 8px 10px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
 .perawat-suggest-item:hover { background: #f0fdfa; }
@@ -516,7 +522,28 @@ $tab_rekam_active = (isset($_GET['tab']) && $_GET['tab'] === 'rekam');
             </form>
         </div>
 
-        <!-- Antrian Pasien -->
+        <!-- Kategori Penyakit -->
+        <div class="box">
+            <h3>🏥 Kategori Penyakit</h3>
+            <form method="post" style="margin-bottom:10px;">
+                <input type="text" name="kategori_baru" placeholder="Kategori baru" required>
+                <button name="tambah_kategori">Tambah</button>
+            </form>
+
+            <table>
+                <tr><th>Kategori</th><th>Aksi</th></tr>
+                <?php foreach($kategori as $k): ?>
+                    <tr>
+                        <td><?=h($k)?></td>
+                        <td><a href="?hapus_kat=<?=urlencode($k)?>" style="color:red;">Hapus</a></td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
+        </div>
+    </div>
+
+    <!-- KOLOM KANAN -->
+    <div class="right-col">
         <div class="box">
             <h3>📋 Antrian Pasien</h3>
             <table>
@@ -544,79 +571,61 @@ $tab_rekam_active = (isset($_GET['tab']) && $_GET['tab'] === 'rekam');
                 </tbody>
             </table>
         </div>
-
-        <!-- Kategori Penyakit -->
-        <div class="box">
-            <h3>🏥 Kategori Penyakit</h3>
-            <form method="post" style="margin-bottom:10px;">
-                <input type="text" name="kategori_baru" placeholder="Kategori baru" required>
-                <button name="tambah_kategori">Tambah</button>
-            </form>
-
-            <table>
-                <tr><th>Kategori</th><th>Aksi</th></tr>
-                <?php foreach($kategori as $k): ?>
-                    <tr>
-                        <td><?=h($k)?></td>
-                        <td><a href="?hapus_kat=<?=urlencode($k)?>" style="color:red;">Hapus</a></td>
-                    </tr>
-                <?php endforeach; ?>
-            </table>
-        </div>
     </div>
+</div>
+<?php if($selected): ?>
+<!-- ================= MODAL PEMERIKSAAN DETAIL ================= -->
+<div class="perawat-modal-backdrop" id="modalPemeriksaan">
+    <div class="perawat-modal">
+        <div class="perawat-modal-header">
+            <div class="perawat-modal-title">
+                Pemeriksaan Pasien — <?=h($selected['nama_anak'])?> (No. Antrian: <?=$selected['nomor_antrian']?>)
+            </div>
+            <a href="perawat.php" class="perawat-modal-close" aria-label="Tutup">&times;</a>
+        </div>
 
-    <!-- KOLOM KANAN -->
-    <div class="right-col">
-        <div class="box">
-            <?php if(!$selected): ?>
-                <p align="center" style="padding:40px 0; color:#666;">
-                    👈 Pilih pasien dari antrian untuk memulai pemeriksaan
-                </p>
-            <?php else: ?>
-                <h3>Pemeriksaan: <?=h($selected['nama_anak'])?></h3>
-                <p><b>Nomor Antrian:</b> <?=$selected['nomor_antrian']?></p>
-                <hr>
+        <!-- Keluhan utama -->
+        <div style="background:#fff3cd; padding:10px; margin:10px 0 16px; border-left:4px solid #ffc107;">
+            <b>Keluhan Saat Daftar:</b><br>
+            <?=safe_display($keluhan_text)?>
+        </div>
 
-                <!-- Keluhan -->
-                <div style="background:#fff3cd; padding:10px; margin:10px 0; border-left:4px solid #ffc107;">
-                    <b>Keluhan:</b><br>
-                    <?=safe_display($keluhan_text)?>
-                </div>
+        <!-- Form Pemeriksaan Lengkap -->
+        <form method="post">
+            <input type="hidden" name="pasien_id" value="<?=$selected['id']?>">
 
-                <!-- Form Pemeriksaan -->
-                <form method="post">
-                    <input type="hidden" name="pasien_id" value="<?=$selected['id']?>">
+            <h4 style="margin-top:4px;">🩺 Data Pemeriksaan</h4>
 
-                    <label><b>Kategori Penyakit (Pilih satu atau lebih):</b></label>
-                    <div class="selected-categories" id="selectedCategoriesDisplay">
-                        <small style="color:#666;">Belum ada kategori dipilih</small>
+            <label><b>Kategori Penyakit (bisa lebih dari satu):</b></label>
+            <div class="selected-categories" id="selectedCategoriesDisplay">
+                <small style="color:#666;">Belum ada kategori dipilih</small>
+            </div>
+            <div class="kategori-checkbox-container">
+                <?php foreach($kategori as $k): ?>
+                    <div class="kategori-checkbox-item">
+                        <input type="checkbox" 
+                               name="kategori[]" 
+                               value="<?=h($k)?>" 
+                               id="kat_<?=h($k)?>"
+                               class="kategori-checkbox">
+                        <label for="kat_<?=h($k)?>"><?=h($k)?></label>
                     </div>
-                    <div class="kategori-checkbox-container">
-                        <?php foreach($kategori as $k): ?>
-                            <div class="kategori-checkbox-item">
-                                <input type="checkbox" 
-                                       name="kategori[]" 
-                                       value="<?=h($k)?>" 
-                                       id="kat_<?=h($k)?>"
-                                       class="kategori-checkbox">
-                                <label for="kat_<?=h($k)?>"><?=h($k)?></label>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
+                <?php endforeach; ?>
+            </div>
 
-                    <!-- Keterangan kategori (muncul ketika ada kategori dipilih) -->
-                    <div id="fieldKeteranganKategori">
-                        <label><b>📝 Keterangan untuk kategori yang dipilih:</b></label>
-                        <textarea name="catatan_kategori" rows="2" placeholder="Misal: Demam - suhu 38°C, menggigil; Batuk - batuk kering"></textarea>
-                    </div>
+            <div id="fieldKeteranganKategori">
+                <label><b>📝 Keterangan untuk kategori yang dipilih:</b></label>
+                <textarea name="catatan_kategori" rows="2" placeholder="Misal: Demam - suhu 38°C, menggigil; Batuk - batuk kering"></textarea>
+            </div>
 
-                    <!-- Field Suhu (muncul jika pilih Demam) -->
-                    <div id="fieldSuhu">
-                        <label><b>🌡️ Suhu Tubuh (°C):</b></label>
-                        <input type="number" step="0.1" name="suhu_demam" placeholder="Contoh: 38.5">
-                        <small>Isi suhu tubuh pasien</small>
-                    </div>
+            <div id="fieldSuhu">
+                <label><b>🌡️ Suhu Tubuh (°C):</b></label>
+                <input type="number" step="0.1" name="suhu_demam" placeholder="Contoh: 38.5">
+                <small>Isi suhu tubuh pasien</small>
+            </div>
 
+            <div class="two-col" style="margin-top:8px; gap:12px;">
+                <div class="left-col" style="width:50%;">
                     <label><b>Tekanan Darah:</b></label>
                     <input type="text" name="td" placeholder="Contoh: 120/80">
 
@@ -625,66 +634,66 @@ $tab_rekam_active = (isset($_GET['tab']) && $_GET['tab'] === 'rekam');
 
                     <label><b>Berat Badan (kg):</b></label>
                     <input type="number" step="0.1" name="berat" placeholder="Contoh: 55.5">
-
+                </div>
+                <div class="right-col">
                     <label><b>Catatan Perawat:</b></label>
                     <textarea name="catatan_perawat" placeholder="Catatan pemeriksaan..."></textarea>
 
                     <label><b>Resep Perawat:</b></label>
                     <textarea name="resep_perawat" placeholder="Obat dan dosis..."></textarea>
-
-                    <label>
-                        <input type="checkbox" name="buat_surat" id="buat_surat" value="1"> Buat Surat Izin Sakit
-                    </label>
-
-                    <!-- Nama Perawat (Otomatis Terisi & Readonly) -->
-                    <label><b>Nama Perawat:</b></label>
-                    <input type="text" value="<?= h($_SESSION['perawat_nama']) ?>" readonly style="background: #e9ecef; cursor: not-allowed;">
-
-                    <br><br>
-                    <div class="pilihan-alur">
-                        <p class="label-alur"><b>Pilih alur pasien:</b></p>
-                        <p class="desc-alur">Jika dokter ada, pilih <strong>Lanjutkan ke Dokter</strong>. Jika dokter tidak ada, pilih <strong>Langsung ke Apoteker</strong>.</p>
-                        <div class="wrap-btn-alur">
-                            <button type="submit" name="simpan" class="btn btn-ke-dokter">✓ Lanjutkan ke Dokter</button>
-                            <button type="submit" name="dokter_tidak_ada" class="btn btn-ke-apoteker">Langsung ke Apoteker (dokter tidak ada)</button>
-                        </div>
-                    </div>
-                </form>
-
-                <p style="margin-top:12px;">
-                    <a href="generate_surat_perawat.php?pasien_id=<?= (int)$selected['id'] ?>" target="_blank" class="btn" style="background:#0d9488;">
-                        📄 Generate Surat Izin (PDF) – Perawat
-                    </a>
-                    <small style="color:#666;"> Buka surat lalu cetak / simpan sebagai PDF.</small>
-                </p>
-
-                <hr style="margin:20px 0;">
-
-                <!-- Riwayat -->
-                <h3>📖 Riwayat Kesehatan</h3>
-                <div id="riwayatContainer" style="max-height:400px; overflow-y:auto;">
-                    <?php
-                    if($riwayat && $riwayat->num_rows > 0){
-                        while($r=$riwayat->fetch_assoc()){
-                            echo '<div style="border:1px solid #ccc; padding:10px; margin-bottom:10px; background:#f9f9f9;">
-                                <small><b>'.date("d M Y H:i", strtotime($r['created_at'])).'</b></small><br>
-                                <b>Kategori:</b> '.safe_display($r['kategori']).'<br>
-                                <b>Keluhan:</b> '.safe_display($r['keluhan']).'<br>';
-                            if($r['catatan_perawat']) echo '<b>Catatan Perawat:</b> '.safe_display($r['catatan_perawat']).'<br>';
-                            if($r['diagnosa']) echo '<b>Diagnosa:</b> '.safe_display($r['diagnosa']).'<br>';
-                            echo '</div>';
-                        }
-                    } else {
-                        echo '<p>Belum ada riwayat</p>';
-                    }
-                    ?>
                 </div>
-            <?php endif; ?>
+            </div>
+
+            <label style="margin-top:8px; display:block;">
+                <input type="checkbox" name="buat_surat" id="buat_surat" value="1"> Buat Surat Izin Sakit
+            </label>
+
+            <label><b>Nama Perawat:</b></label>
+            <input type="text" value="<?= h($_SESSION['perawat_nama']) ?>" readonly style="background: #e9ecef; cursor: not-allowed;">
+
+            <div class="pilihan-alur" style="margin-top:10px;">
+                <p class="label-alur"><b>Pilih alur pasien:</b></p>
+                <p class="desc-alur">Jika dokter ada, pilih <strong>Lanjutkan ke Dokter</strong>. Jika dokter tidak ada, pilih <strong>Langsung ke Apoteker</strong>.</p>
+                <div class="wrap-btn-alur">
+                    <button type="submit" name="simpan" class="btn btn-ke-dokter">✓ Lanjutkan ke Dokter</button>
+                    <button type="submit" name="dokter_tidak_ada" class="btn btn-ke-apoteker">Langsung ke Apoteker (dokter tidak ada)</button>
+                </div>
+            </div>
+        </form>
+
+        <p style="margin-top:12px;">
+            <a href="generate_surat_perawat.php?pasien_id=<?= (int)$selected['id'] ?>" target="_blank" class="btn" style="background:#0d9488;">
+                📄 Generate Surat Izin (PDF) – Perawat
+            </a>
+            <small style="color:#666;"> Buka surat lalu cetak / simpan sebagai PDF.</small>
+        </p>
+
+        <hr style="margin:20px 0 12px;">
+
+        <h4>📖 Riwayat Kesehatan Anak</h4>
+        <div id="riwayatContainer" style="max-height:360px; overflow-y:auto; margin-top:6px;">
+            <?php
+            if($riwayat && $riwayat->num_rows > 0){
+                while($r=$riwayat->fetch_assoc()){
+                    echo '<div style="border:1px solid #ccc; padding:10px; margin-bottom:10px; background:#f9f9f9;">
+                        <small><b>'.date("d M Y H:i", strtotime($r['created_at'])).'</b></small><br>
+                        <b>Kategori:</b> '.safe_display($r['kategori']).'<br>
+                        <b>Keluhan:</b> '.safe_display($r['keluhan']).'<br>';
+                    if($r['catatan_perawat']) echo '<b>Catatan Perawat:</b> '.safe_display($r['catatan_perawat']).'<br>';
+                    if($r['diagnosa']) echo '<b>Diagnosa:</b> '.safe_display($r['diagnosa']).'<br>';
+                    echo '</div>';
+                }
+            } else {
+                echo '<p>Belum ada riwayat</p>';
+            }
+            ?>
         </div>
     </div>
 </div>
-</div><!-- #tabPemeriksaan -->
+<?php endif; ?>
 
+</div><!-- #tabPemeriksaan -->
+    
 <!-- ================= TAB REKAM MEDIK & GRAFIK (gabungan) ================= -->
 <div id="tabRekamMedik" class="perawat-tabContent <?= $tab_rekam_active ? 'active' : '' ?>">
     <div class="box">
