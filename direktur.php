@@ -100,6 +100,7 @@ $kat_all = [];
 $kat_perawat = [];
 $kat_dokter = [];
 $fullflow_rows = [];
+$fullflow_perawat_rows = [];
 
 $res = $db->query("
     SELECT r.kategori
@@ -139,6 +140,23 @@ $res = $db->query("
 ");
 while ($row = $res->fetch_assoc()) {
     $fullflow_rows[] = $row;
+}
+
+// Pasien yang melewati alur perawat → apoteker (tanpa dokter): resep_dari_perawat + pasien.status='selesai'
+$res = $db->query("
+    SELECT a.id_anak, a.nama AS nama_anak,
+           COUNT(*) AS jumlah_kunjungan,
+           MAX(r.created_at) AS terakhir
+    FROM riwayat_kesehatan r
+    JOIN pasien p ON p.id = r.pasien_id
+    JOIN anak a ON a.id_anak = r.anak_id
+    WHERE r.status_akhir = 'resep_dari_perawat'
+      AND p.status = 'selesai' $d_sql
+    GROUP BY a.id_anak, a.nama
+    ORDER BY jumlah_kunjungan DESC, a.nama ASC
+");
+while ($row = $res->fetch_assoc()) {
+    $fullflow_perawat_rows[] = $row;
 }
 
 function max_jumlah($rows) {
@@ -350,9 +368,45 @@ elseif ($period === 'custom') {
 </div>
 
 <div class="dir-panel" style="margin-top:16px;">
+    <h3>🩺 Laporan Resmi – Pasien Alur Perawat → Apoteker (tanpa Dokter)</h3>
+    <p class="muted" style="font-size:11px;">
+        Hanya menampilkan pasien yang alurnya selesai di perawat dan apoteker (status akhir riwayat <code>resep_dari_perawat</code> dan <code>pasien.status='selesai'</code>).
+    </p>
+    <?php
+    $total_anak_full_per = count($fullflow_perawat_rows);
+    $total_kunj_full_per = 0;
+    foreach ($fullflow_perawat_rows as $r) { $total_kunj_full_per += (int)$r['jumlah_kunjungan']; }
+    ?>
+    <p style="font-size:12px; margin-bottom:8px;">
+        <b>Total anak/pasien unik:</b> <?= number_format($total_anak_full_per) ?> &middot;
+        <b>Total kunjungan alur perawat → apoteker:</b> <?= number_format($total_kunj_full_per) ?>x
+    </p>
+    <?php if ($total_anak_full_per === 0): ?>
+        <p class="muted">Belum ada pasien dengan alur perawat → apoteker pada periode ini.</p>
+    <?php else: ?>
+        <table class="dir-table">
+            <tr>
+                <th style="width:50px;">No</th>
+                <th>Nama Anak / Pasien</th>
+                <th style="width:120px;">Jumlah Kunjungan</th>
+                <th style="width:160px;">Terakhir Berobat</th>
+            </tr>
+            <?php $no=1; foreach ($fullflow_perawat_rows as $row): ?>
+            <tr>
+                <td><?= $no++ ?></td>
+                <td><?= h($row['nama_anak']) ?></td>
+                <td><?= (int)$row['jumlah_kunjungan'] ?>x</td>
+                <td><?= h(date('d M Y H:i', strtotime($row['terakhir']))) ?></td>
+            </tr>
+            <?php endforeach; ?>
+        </table>
+    <?php endif; ?>
+</div>
+
+<div class="dir-panel" style="margin-top:12px;">
     <h3>🩺 Laporan Resmi – Pasien Alur Penuh Perawat → Dokter → Apoteker</h3>
     <p class="muted" style="font-size:11px;">
-        Hanya menampilkan pasien yang riwayat terakhirnya sudah mencapai status <code>dokter_selesai</code> (alur lengkap).
+        Hanya menampilkan pasien yang sudah diperiksa dokter dan obatnya selesai di apotek (<code>dokter_selesai</code> + <code>pasien.status='selesai'</code>).
     </p>
     <?php
     $total_anak_full = count($fullflow_rows);
@@ -361,7 +415,7 @@ elseif ($period === 'custom') {
     ?>
     <p style="font-size:12px; margin-bottom:8px;">
         <b>Total anak/pasien unik:</b> <?= number_format($total_anak_full) ?> &middot;
-        <b>Total kunjungan (alur penuh):</b> <?= number_format($total_kunj_full) ?>x
+        <b>Total kunjungan alur penuh:</b> <?= number_format($total_kunj_full) ?>x
     </p>
     <?php if ($total_anak_full === 0): ?>
         <p class="muted">Belum ada pasien yang menyelesaikan alur penuh pada periode ini.</p>
